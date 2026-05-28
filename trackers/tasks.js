@@ -219,12 +219,12 @@ function buildTaskEl(task) {
     </button>
   `;
 
-  el.querySelector('.task-check').addEventListener('click', () => {
+  on(el.querySelector('.task-check'), 'click', () => {
     toggleTask(task.id);
     renderTasks();
   });
 
-  el.querySelector('.task-delete').addEventListener('click', () => {
+  on(el.querySelector('.task-delete'), 'click', () => {
     el.classList.add('task-card--removing');
     setTimeout(() => { deleteTask(task.id); renderTasks(); }, 220);
   });
