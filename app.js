@@ -40,8 +40,7 @@ let activeName = null;
 function switchTab(name) {
   if (name === activeName) return;
   if (active?.unmount) active.unmount();
-  // Don't clear tracker-root for the Tasks tab — Tasks renders into its own static DOM
-  if (name !== 'tasks') trackerRoot.innerHTML = '';
+  trackerRoot.innerHTML = '';
   document.body.dataset.tab = name;
   document.querySelectorAll('.tab-bar-btn').forEach(b => {
     b.setAttribute('aria-selected', b.dataset.tab === name);
