@@ -1,5 +1,9 @@
-import * as tasks from './trackers/tasks.js';
-import { getTasks } from './storage.js';
+import * as tasks  from './trackers/tasks.js';
+import * as habits from './trackers/habits.js';
+import * as sleep  from './trackers/sleep.js';
+import * as weight from './trackers/weight.js';
+import * as meals  from './trackers/meals.js';
+import { getTasks, get, set } from './storage.js';
 import { chatWithAI, generateBriefing, getApiKey, setApiKey, hasApiKey } from './gemini.js';
 
 // ── State ─────────────────────────────────────
@@ -26,9 +30,51 @@ const chatMessages       = $('chat-messages');
 const chatInput          = $('chat-input');
 const chatSend           = $('chat-send');
 
+// ── Router ────────────────────────────────────
+const TRACKERS = { tasks, habits, sleep, weight, meals };
+const trackerRoot = $('tracker-root');
+
+let active = null;
+let activeName = null;
+
+function switchTab(name) {
+  if (name === activeName) return;
+  if (active?.unmount) active.unmount();
+  // Don't clear tracker-root for the Tasks tab — Tasks renders into its own static DOM
+  if (name !== 'tasks') trackerRoot.innerHTML = '';
+  document.body.dataset.tab = name;
+  document.querySelectorAll('.tab-bar-btn').forEach(b => {
+    b.setAttribute('aria-selected', b.dataset.tab === name);
+  });
+  active = TRACKERS[name];
+  activeName = name;
+  active.mount(trackerRoot);
+  set('vox_active_tab', name);
+
+  // Show/hide the static Tasks DOM elements based on active tab
+  // Note: #no-key-banner visibility is managed by loadApiKey/saveKey, not here
+  const tasksDom = ['.filter-tabs', '#task-list', '#empty-state', '.input-bar'];
+  tasksDom.forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el) el.style.display = (name === 'tasks') ? '' : 'none';
+  });
+  // Always keep no-key-banner hidden on non-tasks tabs; restore its class-driven state on tasks
+  if (noKeyBanner) {
+    if (name !== 'tasks') {
+      noKeyBanner.style.display = 'none';
+    } else {
+      noKeyBanner.style.display = '';
+    }
+  }
+}
+
 // ── Init ──────────────────────────────────────
 function init() {
-  tasks.mount();
+  document.querySelectorAll('.tab-bar-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+  const initial = get('vox_active_tab', 'tasks');
+  switchTab(TRACKERS[initial] ? initial : 'tasks');
   wireSettings();
   wireChat();
 }

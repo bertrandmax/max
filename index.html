@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0d">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='16' fill='%230b0b0d'/><circle cx='16' cy='16' r='6' fill='%23e8924a'/></svg>">
+  <title>Vox — Voice Task Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+
+<!-- Voice Listening Overlay -->
+<div id="voice-overlay" class="voice-overlay" aria-hidden="true" aria-modal="true">
+  <div class="voice-orb-container">
+    <div class="orb-ring orb-ring--1"></div>
+    <div class="orb-ring orb-ring--2"></div>
+    <div class="orb-ring orb-ring--3"></div>
+    <button id="voice-stop-btn" class="orb-core" aria-label="Stop listening">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+        <rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/>
+        <path d="M5 11a7 7 0 0014 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M9 21h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+  <p id="voice-transcript-display" class="voice-transcript-display">Listening…</p>
+  <p class="voice-hint">Tap orb to stop</p>
+</div>
+
+<!-- App Root -->
+<div id="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-brand">
+      <span class="brand-dot" id="brand-dot"></span>
+      <span class="brand-name">Vox</span>
+    </div>
+    <div class="header-actions">
+      <button id="briefing-btn" class="header-btn" aria-label="Morning briefing">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span>Briefing</span>
+      </button>
+      <button id="settings-btn" class="header-btn header-btn--icon" aria-label="Settings">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Settings Panel -->
+  <div id="settings-panel" class="settings-panel hidden" role="dialog" aria-label="Settings">
+    <div class="settings-inner">
+      <p class="settings-label">Gemini API Key</p>
+      <p class="settings-desc">
+        Free at <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer">aistudio.google.com</a> — 1,500 req/day, no credit card.
+      </p>
+      <div class="settings-row">
+        <input
+          type="password"
+          id="api-key-input"
+          class="settings-input"
+          placeholder="AIza…"
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <button id="save-key-btn" class="btn-save">Save</button>
+      </div>
+      <div style="display:flex;gap:.5rem;margin-top:.25rem">
+        <button id="test-key-btn" class="btn-save" style="background:var(--bg4);color:var(--ink2);border:1px solid var(--border);">Test Key</button>
+      </div>
+      <p id="key-status" class="key-status"></p>
+    </div>
+  </div>
+
+  <!-- Briefing Card -->
+  <div id="briefing-card" class="briefing-card hidden">
+    <div class="briefing-header">
+      <div class="briefing-label-row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Morning Briefing
+      </div>
+      <button id="close-briefing" class="briefing-close" aria-label="Close briefing">×</button>
+    </div>
+    <div id="briefing-content" class="briefing-content"></div>
+  </div>
+
+  <!-- No API Key Banner -->
+  <div id="no-key-banner" class="no-key-banner hidden">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+      <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span>AI features need a Gemini key — <button id="open-settings-inline" class="inline-btn">add one</button></span>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="filter-tabs" role="tablist">
+    <button class="tab active" data-filter="all" role="tab" aria-selected="true">All</button>
+    <button class="tab" data-filter="active" role="tab" aria-selected="false">Active</button>
+    <button class="tab" data-filter="completed" role="tab" aria-selected="false">Done</button>
+    <div class="tab-count" id="task-count"></div>
+  </div>
+
+  <!-- Task List -->
+  <main id="task-list" class="task-list" role="list" aria-label="Task list"></main>
+
+  <!-- Empty State -->
+  <div id="empty-state" class="empty-state">
+    <div class="empty-icon">◎</div>
+    <p class="empty-title">All clear</p>
+    <p class="empty-sub">Speak or type a task below.</p>
+  </div>
+
+  <!-- Tracker Root (non-Tasks trackers render here) -->
+  <main id="tracker-root" class="tracker-root" aria-live="polite"></main>
+
+  <!-- Input Bar -->
+  <div class="input-bar">
+    <button id="mic-btn" class="mic-btn" aria-label="Voice input">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/>
+        <path d="M5 11a7 7 0 0014 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M9 21h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <input
+      id="task-input"
+      type="text"
+      class="task-input"
+      placeholder="Add a task or speak…"
+      autocomplete="off"
+      spellcheck="false"
+      aria-label="New task"
+    >
+    <button id="add-btn" class="add-btn" aria-label="Add task">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- AI Chat Panel -->
+<div id="chat-panel" class="chat-panel" aria-label="AI Assistant">
+  <button id="chat-toggle" class="chat-toggle" aria-expanded="false">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+    <span>Ask Vox</span>
+    <svg class="chat-chevron" id="chat-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+  <div id="chat-body" class="chat-body" aria-hidden="true">
+    <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-atomic="false"></div>
+    <div class="chat-input-row">
+      <input
+        id="chat-input"
+        type="text"
+        class="chat-input-field"
+        placeholder="What's due this week?"
+        autocomplete="off"
+        aria-label="Ask Vox"
+      >
+      <button id="chat-send" class="chat-send-btn" aria-label="Send message">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<nav class="tab-bar" role="tablist" aria-label="Sections">
+  <button class="tab-bar-btn" data-tab="tasks" role="tab" aria-selected="true">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>Tasks</span>
+  </button>
+  <button class="tab-bar-btn" data-tab="habits" role="tab" aria-selected="false">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+      <circle cx="12" cy="12" r="3" fill="currentColor"/>
+    </svg>
+    <span>Habits</span>
+  </button>
+  <button class="tab-bar-btn" data-tab="sleep" role="tab" aria-selected="false">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+    <span>Sleep</span>
+  </button>
+  <button class="tab-bar-btn" data-tab="weight" role="tab" aria-selected="false">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 4h12l2 16H4L6 4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M9 9l3-3 3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>Weight</span>
+  </button>
+  <button class="tab-bar-btn" data-tab="meals" role="tab" aria-selected="false">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 11h18M5 11v10h14V11M9 4v7M15 4v7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>Meals</span>
+  </button>
+</nav>
+
+<script type="module" src="app.js?v=3"></script>
+</body>
+</html>
