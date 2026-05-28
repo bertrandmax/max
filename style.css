@@ -1036,3 +1036,118 @@ body[data-tab="meals"]  .tab-bar-btn[data-tab="meals"]  { --tab-accent: var(--re
   text-align: center;
   color: var(--ink3);
 }
+
+/* ── Tracker header (shared) ─────────────────── */
+.tracker-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 1.25rem 1.25rem 0.5rem;
+}
+.tracker-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.tracker-add-btn {
+  padding: 0.4rem 0.85rem;
+  border-radius: 100px;
+  background: var(--tab-accent, var(--accent));
+  color: var(--bg);
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+.tracker-add-btn:active { transform: scale(0.95); }
+
+/* ── Habit cards ─────────────────────────────── */
+.habit-list { padding: 0.5rem 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; }
+
+.habit-card {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s;
+}
+.habit-card.done { border-color: var(--green); background: rgba(82,214,138,0.05); }
+
+.habit-toggle { flex: 1; display: flex; align-items: center; gap: 0.75rem; text-align: left; }
+.habit-emoji { font-size: 1.6rem; line-height: 1; }
+.habit-name { font-weight: 600; font-size: 0.97rem; color: var(--ink); }
+.habit-dots { display: flex; gap: 4px; margin-top: 6px; }
+.habit-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  background: transparent;
+}
+.habit-dot.on { background: var(--green); border-color: var(--green); }
+.habit-dot.today { outline: 2px solid var(--green-low); outline-offset: 2px; }
+
+.habit-streak {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--green);
+  padding: 0.2rem 0.5rem;
+  border-radius: 100px;
+  background: var(--green-low);
+  white-space: nowrap;
+}
+.habit-streak.placeholder { color: var(--ink3); background: transparent; }
+
+.habit-delete {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink3); border-radius: 50%; font-size: 1.1rem;
+}
+.habit-delete:hover { color: var(--red); background: var(--red-low); }
+
+/* ── Modal (shared) ──────────────────────────── */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.15s ease;
+}
+.modal-card {
+  width: 100%; max-width: 380px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  display: flex; flex-direction: column; gap: 0.85rem;
+  box-shadow: var(--shadow-lg);
+}
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.modal-input {
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius-xs);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+.modal-input:focus { border-color: var(--tab-accent, var(--accent)); }
+.emoji-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+.emoji-pick {
+  font-size: 1.6rem; padding: 0.5rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  transition: border-color 0.1s, background 0.1s;
+}
+.emoji-pick.selected { border-color: var(--tab-accent, var(--accent)); background: var(--bg4); }
+.modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+.btn-secondary {
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-xs);
+  background: var(--bg4);
+  color: var(--ink2);
+  font-weight: 600;
+}
