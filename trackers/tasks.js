@@ -2,6 +2,45 @@ import { getTasks, addTask, deleteTask, toggleTask, updateTask } from '../storag
 import { parseTask, hasApiKey } from '../gemini.js';
 import { isSupported, createRecognition } from '../speech.js';
 
+// ── Template ──────────────────────────────────
+const TEMPLATE = `
+  <div id="no-key-banner" class="no-key-banner hidden">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+      <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span>AI features need a Gemini key — <button id="open-settings-inline" class="inline-btn">add one</button></span>
+  </div>
+  <div class="filter-tabs" role="tablist">
+    <button class="tab active" data-filter="all" role="tab" aria-selected="true">All</button>
+    <button class="tab" data-filter="active" role="tab" aria-selected="false">Active</button>
+    <button class="tab" data-filter="completed" role="tab" aria-selected="false">Done</button>
+    <div class="tab-count" id="task-count"></div>
+  </div>
+  <main id="task-list" class="task-list" role="list" aria-label="Task list"></main>
+  <div id="empty-state" class="empty-state">
+    <div class="empty-icon">◎</div>
+    <p class="empty-title">All clear</p>
+    <p class="empty-sub">Speak or type a task below.</p>
+  </div>
+  <div class="input-bar" id="task-input-bar">
+    <button id="mic-btn" class="mic-btn" aria-label="Voice input">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/>
+        <path d="M5 11a7 7 0 0014 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M12 18v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M9 21h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <input id="task-input" type="text" class="task-input" placeholder="Add a task or speak…" autocomplete="off" spellcheck="false" aria-label="New task">
+    <button id="add-btn" class="add-btn" aria-label="Add task">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+`;
+
 // ── State ─────────────────────────────────────
 let currentFilter = 'all';
 let recognition   = null;
@@ -15,12 +54,45 @@ function on(el, evt, fn) {
 }
 
 // ── DOM refs (resolved at mount time) ─────────
-const $ = id => document.getElementById(id);
+let taskInput, addBtn, micBtn, taskList, emptyState, taskCount, voiceOverlay, voiceTranscript, voiceStopBtn, brandDot;
+let mountedContainer = null;
+
+function resolveDom(container) {
+  mountedContainer = container;
+  taskInput       = container.querySelector('#task-input');
+  addBtn          = container.querySelector('#add-btn');
+  micBtn          = container.querySelector('#mic-btn');
+  taskList        = container.querySelector('#task-list');
+  emptyState      = container.querySelector('#empty-state');
+  taskCount       = container.querySelector('#task-count');
+  voiceOverlay    = document.getElementById('voice-overlay');
+  voiceTranscript = document.getElementById('voice-transcript-display');
+  voiceStopBtn    = document.getElementById('voice-stop-btn');
+  brandDot        = document.getElementById('brand-dot');
+}
 
 // ── Module interface ──────────────────────────
-export function mount(_container) {
+export function mount(container) {
+  container.innerHTML = TEMPLATE;
+  resolveDom(container);
+
+  // Show or hide the no-key banner based on whether a key is saved
+  const banner = container.querySelector('#no-key-banner');
+  if (banner) banner.classList.toggle('hidden', hasApiKey());
+
+  // Wire the "add one" inline button to open settings
+  const openBtn = container.querySelector('#open-settings-inline');
+  if (openBtn) {
+    on(openBtn, 'click', () => {
+      const settingsPanel = document.getElementById('settings-panel');
+      const apiKeyInput   = document.getElementById('api-key-input');
+      settingsPanel?.classList.remove('hidden');
+      apiKeyInput?.focus();
+    });
+  }
+
   setupVoice();
-  setupEvents();
+  setupTaskEvents();
   renderTasks();
 }
 
@@ -36,13 +108,6 @@ export function getContext() {
 
 // ── Voice ─────────────────────────────────────
 function setupVoice() {
-  const micBtn          = $('mic-btn');
-  const voiceOverlay    = $('voice-overlay');
-  const voiceTranscript = $('voice-transcript-display');
-  const voiceStopBtn    = $('voice-stop-btn');
-  const brandDot        = $('brand-dot');
-  const taskInput       = $('task-input');
-
   if (!isSupported()) {
     micBtn.classList.add('no-support');
     micBtn.title = 'Voice input not supported in this browser';
@@ -91,30 +156,26 @@ function stopListening() {
 }
 
 function endListening() {
-  const micBtn       = $('mic-btn');
-  const voiceOverlay = $('voice-overlay');
-  const brandDot     = $('brand-dot');
-
   isListening = false;
-  voiceOverlay.classList.remove('active');
-  voiceOverlay.setAttribute('aria-hidden', 'true');
-  micBtn.classList.remove('listening');
-  brandDot.classList.remove('listening');
+  if (voiceOverlay) {
+    voiceOverlay.classList.remove('active');
+    voiceOverlay.setAttribute('aria-hidden', 'true');
+  }
+  if (micBtn) micBtn.classList.remove('listening');
+  if (brandDot) brandDot.classList.remove('listening');
 }
 
 // ── Events ────────────────────────────────────
-function setupEvents() {
-  const addBtn    = $('add-btn');
-  const taskInput = $('task-input');
-
+function setupTaskEvents() {
   on(addBtn,    'click',   handleAddTask);
   on(taskInput, 'keydown', e => { if (e.key === 'Enter') handleAddTask(); });
 
   // Filter tabs
-  document.querySelectorAll('.tab').forEach(tab => {
+  const tabs = mountedContainer.querySelectorAll('.filter-tabs .tab');
+  tabs.forEach(tab => {
     on(tab, 'click', () => {
       currentFilter = tab.dataset.filter;
-      document.querySelectorAll('.tab').forEach(t => {
+      tabs.forEach(t => {
         t.classList.toggle('active', t === tab);
         t.setAttribute('aria-selected', t === tab);
       });
@@ -125,8 +186,6 @@ function setupEvents() {
 
 // ── Add Task ──────────────────────────────────
 async function handleAddTask() {
-  const taskInput = $('task-input');
-  const addBtn    = $('add-btn');
   const raw = taskInput.value.trim();
   if (!raw) return;
 
@@ -170,10 +229,6 @@ async function handleAddTask() {
 
 // ── Render Tasks ──────────────────────────────
 function renderTasks() {
-  const taskList   = $('task-list');
-  const emptyState = $('empty-state');
-  const taskCount  = $('task-count');
-
   const all = getTasks();
   const visible = all.filter(t => {
     if (currentFilter === 'active')    return !t.completed;

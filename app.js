@@ -21,8 +21,6 @@ const settingsPanel      = $('settings-panel');
 const apiKeyInput        = $('api-key-input');
 const saveKeyBtn         = $('save-key-btn');
 const keyStatus          = $('key-status');
-const noKeyBanner        = $('no-key-banner');
-const openSettingsInline = $('open-settings-inline');
 const chatToggle         = $('chat-toggle');
 const chatChevron        = $('chat-chevron');
 const chatBody           = $('chat-body');
@@ -49,22 +47,6 @@ function switchTab(name) {
   activeName = name;
   active.mount(trackerRoot);
   set('vox_active_tab', name);
-
-  // Show/hide the static Tasks DOM elements based on active tab
-  // Note: #no-key-banner visibility is managed by loadApiKey/saveKey, not here
-  const tasksDom = ['.filter-tabs', '#task-list', '#empty-state', '.input-bar'];
-  tasksDom.forEach(sel => {
-    const el = document.querySelector(sel);
-    if (el) el.style.display = (name === 'tasks') ? '' : 'none';
-  });
-  // Always keep no-key-banner hidden on non-tasks tabs; restore its class-driven state on tasks
-  if (noKeyBanner) {
-    if (name !== 'tasks') {
-      noKeyBanner.style.display = 'none';
-    } else {
-      noKeyBanner.style.display = '';
-    }
-  }
 }
 
 // ── Init ──────────────────────────────────────
@@ -89,10 +71,6 @@ function wireSettings() {
   saveKeyBtn.addEventListener('click', saveKey);
   apiKeyInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveKey(); });
   $('test-key-btn').addEventListener('click', testKey);
-  openSettingsInline?.addEventListener('click', () => {
-    settingsPanel.classList.remove('hidden');
-    apiKeyInput.focus();
-  });
 
   // Close settings on outside click
   document.addEventListener('click', e => {
@@ -127,12 +105,10 @@ async function testKey() {
 
 function loadApiKey() {
   const key = getApiKey();
-  if (key) {
-    apiKeyInput.value = key;
-    noKeyBanner.classList.add('hidden');
-  } else {
-    noKeyBanner.classList.remove('hidden');
-  }
+  if (key && apiKeyInput) apiKeyInput.value = key;
+  // Banner is only in the DOM when Tasks tab is mounted
+  const banner = document.getElementById('no-key-banner');
+  if (banner) banner.classList.toggle('hidden', !!key);
 }
 
 function saveKey() {
@@ -141,7 +117,8 @@ function saveKey() {
   setApiKey(key);
   keyStatus.textContent = '✓ Saved';
   keyStatus.style.color = 'var(--green)';
-  noKeyBanner.classList.add('hidden');
+  const banner = document.getElementById('no-key-banner');
+  if (banner) banner.classList.add('hidden');
   setTimeout(() => {
     keyStatus.textContent = '';
     settingsPanel.classList.add('hidden');
