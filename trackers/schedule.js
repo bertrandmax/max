@@ -98,9 +98,39 @@ function timelineOccurrences(date) {
     .sort((a, b) => toMin(a.startTime) - toMin(b.startTime));
 }
 
+// Greedy interval partitioning. Mutates each occ with _col (column index)
+// and _cols (column count in its overlap cluster). occs MUST be start-sorted.
+function assignColumns(occs) {
+  const items = occs.map(o => {
+    const start = toMin(o.startTime);
+    const dur = Math.max(30, o.endTime ? toMin(o.endTime) - toMin(o.startTime) : 30);
+    return { o, start, end: start + dur };
+  });
+  let i = 0;
+  while (i < items.length) {
+    let j = i, maxEnd = items[i].end;
+    while (j + 1 < items.length && items[j + 1].start < maxEnd) {
+      j++; maxEnd = Math.max(maxEnd, items[j].end);
+    }
+    const cluster = items.slice(i, j + 1);
+    const colEnds = [];
+    cluster.forEach(it => {
+      let placed = false;
+      for (let c = 0; c < colEnds.length; c++) {
+        if (colEnds[c] <= it.start) { colEnds[c] = it.end; it.o._col = c; placed = true; break; }
+      }
+      if (!placed) { it.o._col = colEnds.length; colEnds.push(it.end); }
+    });
+    cluster.forEach(it => { it.o._cols = colEnds.length; });
+    i = j + 1;
+  }
+  return occs;
+}
+
 function render() {
   const dayLabel = viewDate === todayStr() ? `Today · ${fmtDayLabel(viewDate)}` : fmtDayLabel(viewDate);
   const occs = timelineOccurrences(viewDate);
+  assignColumns(occs);
 
   container.innerHTML = `
     <div class="tracker-header">
@@ -170,13 +200,22 @@ function blockMarkup(o) {
   const durMin = Math.max(30, o.endTime ? (toMin(o.endTime) - toMin(o.startTime)) : 30);
   const top = (startMin / 60) * HOUR_PX;
   const height = (durMin / 60) * HOUR_PX;
-  const cat = o.category || 'other';
+  const cols = o._cols || 1;
+  const col = o._col || 0;
+  const gap = 2; // px gutter between columns
+  const widthPct = 100 / cols;
+  const leftPct = col * widthPct;
+  const cat = o._task ? 'task' : (o.category || 'other');
+  const moreBtn = o._task
+    ? ''
+    : `<button class="sched-block-more" aria-label="More actions" data-id="${o.id}">⋯</button>`;
   return `
-    <div class="sched-block cat-${cat} ${o.done ? 'done' : ''} ${o._parsing ? 'parsing' : ''}"
-         data-id="${o.id}" style="top:${top}px;height:${height}px">
-      <div class="sched-block-title">${escapeHtml(o.title)}</div>
+    <div class="sched-block cat-${cat} ${o.done ? 'done' : ''} ${o._parsing ? 'parsing' : ''} ${o._task ? 'is-task' : ''}"
+         data-id="${o.id}" ${o._task ? `data-task="${o.taskId}"` : ''}
+         style="top:${top}px;height:${height}px;left:calc(${leftPct}% + ${gap}px);width:calc(${widthPct}% - ${gap * 2}px)">
+      <div class="sched-block-title">${o._task ? '☑ ' : ''}${escapeHtml(o.title)}</div>
       <div class="sched-block-time">${o.startTime}${o.endTime ? '–' + o.endTime : ''}${o._parsing ? ' · parsing…' : ''}</div>
-      <button class="sched-block-more" aria-label="More actions" data-id="${o.id}">⋯</button>
+      ${moreBtn}
     </div>
   `;
 }

@@ -1375,7 +1375,7 @@ body[data-tab="schedule"] { --accent: #9b7cff; }
 
 /* ── Blocks ─────────────────────────────────── */
 .sched-block {
-  position: absolute; left: .25rem; right: .25rem;
+  position: absolute;
   padding: .35rem .55rem;
   background: var(--bg2);
   border-left: 3px solid var(--accent);
