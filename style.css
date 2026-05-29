@@ -684,7 +684,7 @@ body {
    ══════════════════════════════════════════════ */
 .input-bar {
   position: fixed;
-  bottom: calc(var(--chatbar-h) + 8px);
+  bottom: 0;
   left: 0;
   right: 0;
   z-index: 90;
