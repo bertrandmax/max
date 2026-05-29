@@ -46,7 +46,7 @@ a { color: var(--accent); }
   /* Spacing */
   --header-h:     60px;
   --inputbar-h:   72px;
-  --chatbar-h:    52px;
+  --chatbar-h:    0px;
   --radius:       14px;
   --radius-sm:    8px;
   --radius-xs:    5px;
@@ -1001,29 +1001,29 @@ body {
 .tab-bar-btn:hover { color: var(--ink2); }
 .tab-bar-btn[aria-selected="true"] { color: var(--tab-accent, var(--accent)); }
 
-body[data-tab="tasks"]  .tab-bar-btn[data-tab="tasks"]  { --tab-accent: var(--accent); }
-body[data-tab="habits"] .tab-bar-btn[data-tab="habits"] { --tab-accent: var(--green);  }
-body[data-tab="sleep"]  .tab-bar-btn[data-tab="sleep"]  { --tab-accent: var(--slate);  }
-body[data-tab="weight"] .tab-bar-btn[data-tab="weight"] { --tab-accent: var(--yellow); }
-body[data-tab="meals"]  .tab-bar-btn[data-tab="meals"]  { --tab-accent: var(--red);    }
+body[data-tab="tasks"]    .tab-bar-btn[data-tab="tasks"]    { --tab-accent: var(--accent); }
+body[data-tab="habits"]   .tab-bar-btn[data-tab="habits"]   { --tab-accent: var(--green);  }
+body[data-tab="sleep"]    .tab-bar-btn[data-tab="sleep"]    { --tab-accent: var(--slate);  }
+body[data-tab="weight"]   .tab-bar-btn[data-tab="weight"]   { --tab-accent: var(--yellow); }
+body[data-tab="schedule"] .tab-bar-btn[data-tab="schedule"] { --tab-accent: #9b7cff;       }
 
 /* ── Tracker root + chat shift ───────────────── */
 .tracker-root { flex: 1; display: flex; flex-direction: column; }
 
-/* Chat panel must now sit above tab bar */
-.chat-panel { bottom: var(--tabbar-h); }
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .chat-panel { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
-}
-
 /* App bottom padding shifts to leave room for tab bar */
 #app { padding-bottom: calc(var(--inputbar-h) + var(--chatbar-h) + var(--tabbar-h) + env(safe-area-inset-bottom, 0px)); }
+/* Non-Tasks tabs don't have an input bar */
+body:not([data-tab="tasks"]) #app {
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
+}
 
 /* Input bar must sit above chat panel + tab bar */
 .input-bar { bottom: calc(var(--chatbar-h) + var(--tabbar-h) + 8px); }
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .input-bar { bottom: calc(var(--chatbar-h) + var(--tabbar-h) + 8px + env(safe-area-inset-bottom)); }
 }
+/* Input bar only needed on Tasks tab */
+body:not([data-tab="tasks"]) .input-bar { display: none; }
 
 /* Generic tracker empty state */
 .tracker-empty {
