@@ -22,7 +22,12 @@ async function callGemini(prompt) {
   }
 
   const data = await res.json();
-  return data.candidates[0].content.parts[0].text;
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) {
+    const reason = data.candidates?.[0]?.finishReason || 'unknown';
+    throw new Error(`Gemini returned no text (${reason})`);
+  }
+  return text;
 }
 
 export async function parseTask(rawInput) {

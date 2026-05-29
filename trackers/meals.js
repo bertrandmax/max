@@ -6,7 +6,15 @@ let removers = [];
 let container = null;
 let viewDate = todayStr();
 
-export function mount(el) { container = el; render(); }
+export function mount(el) {
+  container = el;
+  // Clean up any stuck _parsing entries from prior crashed mounts
+  const all = get(KEY, []);
+  if (all.some(m => m._parsing)) {
+    set(KEY, all.map(m => m._parsing ? { ...m, _parsing: false, _failed: true } : m));
+  }
+  render();
+}
 export function unmount() { removers.forEach(fn => fn()); removers = []; container = null; }
 export function getContext() {
   const all = get(KEY, []);
@@ -115,8 +123,9 @@ function render() {
         : m);
       set(KEY, updated);
     } catch {
-      // leave as failed
+      // fall through — record stays as _parsing or gets cleared on mount
     }
+    if (!container) return;   // tab switched away
     render();
     container.querySelector('#meal-input')?.focus();
   };

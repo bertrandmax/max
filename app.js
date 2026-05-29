@@ -149,7 +149,7 @@ async function handleBriefing() {
 
   try {
     const text = await generateBriefing(buildFullContext());
-    briefingContent.innerHTML = `<p>${escapeHtml(text)}</p>`;
+    briefingContent.innerHTML = `<p style="white-space:pre-wrap">${escapeHtml(text)}</p>`;
   } catch (err) {
     briefingContent.innerHTML = `<p style="color:var(--red)">Error: ${escapeHtml(err.message)}</p>`;
   }
@@ -191,6 +191,7 @@ async function handleChat() {
 function appendMsg(role, text, thinking = false) {
   const el = document.createElement('div');
   el.className = `chat-msg chat-msg--${role}${thinking ? ' thinking' : ''}`;
+  el.style.whiteSpace = 'pre-wrap';
   el.textContent = text;
   chatMessages.appendChild(el);
   chatMessages.scrollTop = chatMessages.scrollHeight;
