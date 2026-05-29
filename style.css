@@ -1337,3 +1337,84 @@ body[data-tab="meals"] .meal-input-bar .add-btn { background: var(--red); box-sh
 body[data-tab="meals"] .btn-save { background: var(--red); }
 
 body[data-tab="weight"] .btn-save { background: var(--yellow); }
+
+/* ── Schedule tab accent ─────────────────────── */
+body[data-tab="schedule"] { --accent: #9b7cff; }
+
+/* ── Timeline grid ──────────────────────────── */
+.schedule-timeline {
+  position: relative;
+  margin: .75rem 1rem 1rem;
+  padding-left: 3.25rem;
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+  background:
+    linear-gradient(to bottom, var(--bg2) 0 1px, transparent 1px) 0 0/100% 64px;
+}
+.hour-row {
+  position: absolute; left: 0; right: 0;
+  height: 64px;
+  border-top: 1px solid var(--border);
+}
+.hour-label {
+  position: absolute; left: -3rem; top: -.55rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem; color: var(--ink3);
+}
+.now-line {
+  position: absolute; left: 0; right: 0; height: 1px;
+  background: var(--red, #e35a4d);
+  box-shadow: 0 0 0 1px rgba(227,90,77,.3);
+  z-index: 3;
+}
+.schedule-empty {
+  position: absolute; left: 0; right: 0;
+  top: 40%; text-align: center;
+  color: var(--ink3); font-size: .9rem;
+}
+
+/* ── Blocks ─────────────────────────────────── */
+.sched-block {
+  position: absolute; left: .25rem; right: .25rem;
+  padding: .35rem .55rem;
+  background: var(--bg2);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  font-size: .85rem;
+  overflow: hidden;
+  cursor: pointer;
+  transition: opacity .15s, background .15s;
+}
+.sched-block.cat-work     { border-left-color: #ffb454; }
+.sched-block.cat-health   { border-left-color: #4cc38a; }
+.sched-block.cat-personal { border-left-color: #9b7cff; }
+.sched-block.cat-other    { border-left-color: var(--ink3); }
+.sched-block.done { opacity: .45; }
+.sched-block.done .sched-block-title { text-decoration: line-through; }
+.sched-block.parsing { opacity: .55; font-style: italic; }
+.sched-block-title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sched-block-time  { font-family: 'IBM Plex Mono', monospace; font-size: .7rem; color: var(--ink3); }
+.sched-block-more {
+  position: absolute; top: 2px; right: 4px;
+  background: transparent; border: 0;
+  color: var(--ink3); padding: 2px 6px; cursor: pointer;
+}
+
+/* ── Modal extras ───────────────────────────── */
+.kind-row, .cat-row, .wd-row {
+  display: flex; gap: .5rem; flex-wrap: wrap; margin: .5rem 0;
+}
+.kind-btn, .cat-chip, .wd-chip {
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--ink2);
+  padding: .35rem .7rem; border-radius: 999px;
+  cursor: pointer; font-size: .8rem;
+}
+.kind-btn.selected, .cat-chip.selected, .wd-chip.selected {
+  background: var(--accent); color: var(--bg);
+  border-color: var(--accent);
+}
+.wd-chip { width: 2rem; padding: .35rem 0; text-align: center; }
+.time-row { display: flex; gap: .75rem; margin: .5rem 0; }
+.time-row label { display: flex; flex-direction: column; gap: .25rem; font-size: .75rem; color: var(--ink3); flex: 1; }
+.block-label { display: flex; flex-direction: column; gap: .25rem; font-size: .75rem; color: var(--ink3); margin: .5rem 0; }

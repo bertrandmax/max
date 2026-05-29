@@ -150,28 +150,93 @@ async function pullWeightGoal() {
   if (data) write('vox_weight_goal', { value: Number(data.value), unit: data.unit });
   else write('vox_weight_goal', null);
 }
+async function pushScheduleItems() {
+  const arr = read('vox_schedule_items', []);
+  if (!arr.length) return;
+  const rows = arr
+    .filter(i => !i._parsing)
+    .map(i => ({
+      id: i.id,
+      user_id: userId,
+      kind: i.kind,
+      title: i.title,
+      start_time: i.startTime,
+      end_time: i.endTime || null,
+      category: i.category || 'other',
+      notes: i.notes || null,
+      date: i.kind === 'event' ? i.date : null,
+      weekdays: i.kind === 'routine' ? (i.weekdays || []) : null,
+      interval_days: i.kind === 'routine' ? (i.intervalDays || 1) : 1,
+      created_at: i.createdAt || new Date().toISOString()
+    }));
+  if (rows.length) await sb.from('schedule_items').upsert(rows);
+}
+
+async function pullScheduleItems() {
+  const { data } = await sb.from('schedule_items').select('*').order('created_at', { ascending: false });
+  if (!data) return;
+  write('vox_schedule_items', data.map(r => ({
+    id: r.id,
+    kind: r.kind,
+    title: r.title,
+    startTime: r.start_time,
+    endTime: r.end_time,
+    category: r.category,
+    notes: r.notes,
+    date: r.date,
+    weekdays: r.weekdays,
+    intervalDays: r.interval_days,
+    createdAt: r.created_at
+  })));
+}
+
+async function pushScheduleDone() {
+  const arr = read('vox_schedule_done', []);
+  if (!arr.length) return;
+  const rows = arr.map(d => ({
+    item_id: d.itemId,
+    user_id: userId,
+    date: d.date,
+    completed_at: d.completedAt || new Date().toISOString()
+  }));
+  await sb.from('schedule_completions').upsert(rows, { onConflict: 'item_id,date' });
+}
+
+async function pullScheduleDone() {
+  const { data } = await sb.from('schedule_completions').select('item_id, date, completed_at');
+  if (!data) return;
+  write('vox_schedule_done', data.map(r => ({
+    itemId: r.item_id,
+    date: r.date,
+    completedAt: r.completed_at
+  })));
+}
 // ── Orchestrators ────────────────────────────────────────
 async function pushAll() {
   await pushHabits();      // before habit_log (FK)
   await Promise.all([
     pushTasks(), pushHabitLog(), pushSleep(),
-    pushWeight(), pushWeightGoal()
+    pushWeight(), pushWeightGoal(),
+    pushScheduleItems(), pushScheduleDone()
   ]);
 }
 async function pullAll() {
   await Promise.all([
     pullTasks(), pullHabits(), pullHabitLog(),
-    pullSleep(), pullWeight(), pullWeightGoal()
+    pullSleep(), pullWeight(), pullWeightGoal(),
+    pullScheduleItems(), pullScheduleDone()
   ]);
 }
 
 const PUSHERS = {
   vox_tasks: pushTasks, vox_habits: pushHabits, vox_habit_log: pushHabitLog,
-  vox_sleep: pushSleep, vox_weight: pushWeight, vox_weight_goal: pushWeightGoal
+  vox_sleep: pushSleep, vox_weight: pushWeight, vox_weight_goal: pushWeightGoal,
+  vox_schedule_items: pushScheduleItems, vox_schedule_done: pushScheduleDone
 };
 const PULLERS = {
   tasks: pullTasks, habits: pullHabits, habit_log: pullHabitLog,
-  sleep: pullSleep, weight: pullWeight, weight_goal: pullWeightGoal
+  sleep: pullSleep, weight: pullWeight, weight_goal: pullWeightGoal,
+  schedule_items: pullScheduleItems, schedule_completions: pullScheduleDone
 };
 
 // Debounced per-key push so rapid edits coalesce

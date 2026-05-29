@@ -1,10 +1,11 @@
-import * as tasks  from './trackers/tasks.js?v=14';
-import * as habits from './trackers/habits.js?v=14';
-import * as sleep  from './trackers/sleep.js?v=14';
-import * as weight from './trackers/weight.js?v=14';
-import { get, set } from './storage.js?v=14';
-import { chatWithAI, generateBriefing, getApiKey, setApiKey, hasApiKey } from './gemini.js?v=14';
-import { initCloud } from './cloud.js?v=14';
+import * as tasks  from './trackers/tasks.js?v=15';
+import * as habits from './trackers/habits.js?v=15';
+import * as sleep  from './trackers/sleep.js?v=15';
+import * as weight from './trackers/weight.js?v=15';
+import * as schedule from './trackers/schedule.js?v=15';
+import { get, set } from './storage.js?v=15';
+import { chatWithAI, generateBriefing, getApiKey, setApiKey, hasApiKey } from './gemini.js?v=15';
+import { initCloud } from './cloud.js?v=15';
 
 // ── State ─────────────────────────────────────
 let chatOpen = false;
@@ -29,7 +30,7 @@ const chatInput          = $('chat-input');
 const chatSend           = $('chat-send');
 
 // ── Router ────────────────────────────────────
-const TRACKERS = { tasks, habits, sleep, weight };
+const TRACKERS = { tasks, habits, sleep, weight, schedule };
 const trackerRoot = $('tracker-root');
 
 let active = null;
@@ -141,7 +142,8 @@ function buildFullContext() {
     tasks:  tasks.getContext(),
     habits: habits.getContext(),
     sleep:  sleep.getContext(),
-    weight: weight.getContext()
+    weight: weight.getContext(),
+    schedule: schedule.getContext()
   };
 }
 

@@ -64,6 +64,45 @@ Today's date is ${today}. Use it to resolve relative dates like "tomorrow" or "n
   }
 }
 
+export async function parseScheduleItem(rawInput, viewDate) {
+  const today = localToday();
+  const prompt =
+`You are a schedule parser. Extract a structured schedule entry from the user's input.
+
+User input: "${rawInput}"
+
+Today's date is ${today}. Currently viewing ${viewDate}.
+
+Return ONLY a valid JSON object (no markdown, no explanation) with these exact fields:
+{
+  "title":        "clean event title",
+  "kind":         "event" | "routine",
+  "startTime":    "HH:MM in 24h",
+  "endTime":      "HH:MM in 24h or null",
+  "date":         "YYYY-MM-DD or null (required when kind=event)",
+  "weekdays":     [0..6] or null (Sun=0, required when kind=routine),
+  "intervalDays": 1,
+  "category":     "work | health | personal | other"
+}
+
+Resolve relative dates like "tomorrow", "next Friday". For routines use phrases like "every day", "weekdays", "every monday wednesday friday", "every 2 days".`;
+
+  try {
+    const text = await callGemini(prompt);
+    const cleaned = text.replace(/```json\n?|\n?```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    if (!parsed.title || !parsed.startTime) throw new Error('missing fields');
+    return parsed;
+  } catch {
+    return {
+      title: rawInput, kind: 'event',
+      startTime: '09:00', endTime: null,
+      date: viewDate, weekdays: null, intervalDays: 1,
+      category: 'other', _failed: true
+    };
+  }
+}
+
 export async function chatWithAI(question, fullContext) {
   const today = localToday();
   const prompt =
@@ -83,6 +122,9 @@ ${JSON.stringify(fullContext.sleep ?? [], null, 2)}
 WEIGHT (last 30 entries + goal):
 ${JSON.stringify(fullContext.weight ?? {}, null, 2)}
 
+SCHEDULE (today + next 3 days):
+${JSON.stringify(fullContext.schedule ?? {}, null, 2)}
+
 Answer the user concisely. Reference specific data points (titles, dates, numbers) when useful. If a tracker has no data relevant to the question, ignore it silently.
 
 User: "${question}"`;
@@ -100,8 +142,9 @@ TASKS: ${JSON.stringify(fullContext.tasks ?? [])}
 HABITS: ${JSON.stringify(fullContext.habits ?? {})}
 SLEEP (last 7): ${JSON.stringify((fullContext.sleep ?? []).slice(0, 7))}
 WEIGHT (last 7): ${JSON.stringify({ entries: (fullContext.weight?.entries ?? []).slice(0, 7), goal: fullContext.weight?.goal })}
+SCHEDULE (today): ${JSON.stringify(fullContext.schedule?.today ?? [])}
 
-Cover what's relevant from: tasks due today, overdue tasks, a top priority, any habit streak at risk (yesterday missed), unusual sleep (under 6h two nights running), weight trend.
+Cover what's relevant from: tasks due today, overdue tasks, a top priority, any habit streak at risk (yesterday missed), unusual sleep (under 6h two nights running), weight trend, first scheduled event of the day, busy stretches, overlapping items.
 
 If a section has no data, skip it silently. Keep it brief.`;
   return await callGemini(prompt);
