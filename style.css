@@ -1220,3 +1220,68 @@ body[data-tab="sleep"] .btn-save { background: var(--slate); }
 .sleep-date { font-family: var(--font-mono); color: var(--ink3); font-size: 0.78rem; }
 .sleep-hours { color: var(--ink); font-weight: 600; }
 .sleep-stars { color: var(--slate); font-size: 0.78rem; letter-spacing: 1px; }
+
+/* ── Weight ──────────────────────────────────── */
+.weight-hero { text-align: center; padding: 1rem 1.25rem 0.25rem; }
+.weight-current {
+  font-family: var(--font-display);
+  font-size: 3rem; font-weight: 800; letter-spacing: -0.03em;
+  color: var(--yellow);
+}
+.weight-delta { font-size: 0.85rem; color: var(--ink3); margin-top: 4px; }
+
+.weight-chart {
+  width: calc(100% - 2.5rem);
+  display: block;
+  margin: 0.75rem 1.25rem;
+  height: 140px;
+  background: var(--bg3);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+}
+
+.weight-list { padding: 0.5rem 1.25rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.weight-row {
+  display: grid; grid-template-columns: 1fr auto auto 30px;
+  align-items: center; gap: 0.5rem;
+  padding: 0.5rem 0.8rem;
+  background: var(--bg3); border-radius: var(--radius-xs);
+  font-size: 0.85rem;
+}
+.weight-val { font-weight: 600; color: var(--ink); }
+.weight-delta-mini { font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink3); }
+.weight-delta-mini.up   { color: var(--red); }
+.weight-delta-mini.down { color: var(--green); }
+
+.link-btn {
+  font-size: 0.82rem;
+  color: var(--yellow);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.unit-toggle { display: flex; gap: 4px; }
+.unit-btn {
+  flex: 1; padding: 0.5rem; border-radius: var(--radius-xs);
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--ink2); font-weight: 600;
+}
+.unit-btn.selected { background: var(--yellow); color: var(--bg); border-color: var(--yellow); }
+
+/* ── Floating action button (shared) ─────────── */
+.fab {
+  position: fixed;
+  bottom: calc(var(--tabbar-h) + var(--chatbar-h) + env(safe-area-inset-bottom, 0px) + 16px);
+  right: 1.25rem;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--tab-accent, var(--accent));
+  color: var(--bg);
+  font-size: 1.8rem; font-weight: 300;
+  box-shadow: var(--shadow-md);
+  z-index: 80;
+  transition: transform 0.1s;
+}
+.fab:active { transform: scale(0.94); }
+
+body[data-tab="weight"] .btn-save { background: var(--yellow); }
