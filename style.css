@@ -1443,3 +1443,19 @@ body[data-tab="schedule"] { --accent: #9b7cff; }
 .week-day.selected .wd-letter,
 .week-day.selected .wd-num,
 .week-day.selected .wd-dots { color: var(--bg); }
+
+/* ── Tasks on schedule ──────────────────────── */
+.sched-block.cat-task { border-left-color: var(--accent); border-left-style: dashed; }
+.sched-block.is-task .sched-block-title { color: var(--ink2); }
+
+.untimed-row { display: flex; flex-wrap: wrap; gap: .35rem; padding: .25rem 1rem .5rem; }
+.untimed-chip {
+  display: inline-flex; align-items: center; gap: .3rem;
+  max-width: 100%;
+  padding: .3rem .6rem;
+  background: var(--bg3); border: 1px dashed var(--border2); border-radius: 999px;
+  color: var(--ink2); font-size: .8rem; cursor: pointer;
+}
+.untimed-chip .untimed-check { color: var(--accent); }
+.untimed-chip .untimed-time { font-family: var(--font-mono); font-size: .7rem; color: var(--ink3); }
+.untimed-chip.done { opacity: .5; text-decoration: line-through; }

@@ -81,6 +81,15 @@ function weekStripMarkup() {
   </div>`;
 }
 
+function untimedMarkup(date) {
+  const ut = untimedTasks(date);
+  if (!ut.length) return '';
+  return `<div class="untimed-row">${ut.map(t =>
+    `<button class="untimed-chip ${t.completed ? 'done' : ''}" data-task="${t.id}">
+      <span class="untimed-check">☑</span>${escapeHtml(t.title)}${t.dueTime ? ` <span class="untimed-time">${t.dueTime}</span>` : ''}
+    </button>`).join('')}</div>`;
+}
+
 function occurrencesFor(date) {
   const items = get(ITEMS_KEY, []);
   const done  = get(DONE_KEY, []);
@@ -173,6 +182,7 @@ function render() {
     </div>
 
     ${weekStripMarkup()}
+    ${untimedMarkup(viewDate)}
     <div class="schedule-timeline" id="timeline" style="height:${(END_HR - START_HR + 1) * HOUR_PX}px">
       ${hoursMarkup()}
       ${nowLineMarkup()}
@@ -298,22 +308,23 @@ function wireWeekStrip() {
 }
 function wireBlocks(occs) {
   container.querySelectorAll('.sched-block').forEach(el => {
+    if (el.classList.contains('is-task')) {
+      on(el, 'click', () => { toggleTask(el.dataset.task); render(); });
+      return;
+    }
     const id = el.dataset.id;
     const item = occs.find(o => o.id === id);
     if (!item) return;
-
     on(el, 'click', e => {
       if (e.target.classList.contains('sched-block-more')) return;
       toggleDone(item.id, viewDate);
       render();
     });
-
     const more = el.querySelector('.sched-block-more');
-    if (more) on(more, 'click', e => {
-      e.stopPropagation();
-      openModal(item);
-    });
+    if (more) on(more, 'click', e => { e.stopPropagation(); openModal(item); });
   });
+  container.querySelectorAll('.untimed-chip').forEach(el =>
+    on(el, 'click', () => { toggleTask(el.dataset.task); render(); }));
 }
 
 function toggleDone(itemId, date) {
