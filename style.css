@@ -1418,3 +1418,28 @@ body[data-tab="schedule"] { --accent: #9b7cff; }
 .time-row { display: flex; gap: .75rem; margin: .5rem 0; }
 .time-row label { display: flex; flex-direction: column; gap: .25rem; font-size: .75rem; color: var(--ink3); flex: 1; }
 .block-label { display: flex; flex-direction: column; gap: .25rem; font-size: .75rem; color: var(--ink3); margin: .5rem 0; }
+
+/* ── Week strip ─────────────────────────────── */
+.week-nav { display: flex; align-items: stretch; gap: .25rem; padding: 0 .75rem .25rem; }
+.week-strip { display: flex; flex: 1; gap: .25rem; }
+.week-arrow {
+  flex: 0 0 auto; min-width: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--ink2);
+}
+.week-day {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: .35rem 0 .25rem;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--ink2); cursor: pointer;
+}
+.week-day .wd-letter { font-size: .62rem; text-transform: uppercase; color: var(--ink3); }
+.week-day .wd-num { font-family: var(--font-display); font-weight: 700; font-size: .95rem; color: var(--ink); }
+.week-day .wd-dots { font-size: .5rem; line-height: .5rem; height: .6rem; color: var(--accent); letter-spacing: 1px; }
+.week-day.today { border-color: var(--accent); }
+.week-day.selected { background: var(--accent); border-color: var(--accent); }
+.week-day.selected .wd-letter,
+.week-day.selected .wd-num,
+.week-day.selected .wd-dots { color: var(--bg); }

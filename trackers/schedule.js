@@ -53,6 +53,34 @@ function fmtDayLabel(s) {
   return d.toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short' });
 }
 
+function weekStartStr(date) {
+  const d = new Date(date + 'T00:00:00');
+  d.setDate(d.getDate() - d.getDay()); // Sunday=0 start
+  return localDateStr(d);
+}
+
+function weekStripMarkup() {
+  const start = weekStartStr(viewDate);
+  const today = todayStr();
+  const cells = [0,1,2,3,4,5,6].map(i => {
+    const ds = shiftDate(start, i);
+    const count = timelineOccurrences(ds).length;
+    const dots = '•'.repeat(Math.min(3, count));
+    const d = new Date(ds + 'T00:00:00');
+    const letter = d.toLocaleDateString('en-US', { weekday: 'narrow' });
+    return `<button class="week-day ${ds === viewDate ? 'selected' : ''} ${ds === today ? 'today' : ''}" data-date="${ds}">
+      <span class="wd-letter">${letter}</span>
+      <span class="wd-num">${d.getDate()}</span>
+      <span class="wd-dots">${dots}</span>
+    </button>`;
+  }).join('');
+  return `<div class="week-nav">
+    <button class="week-arrow" id="week-prev" aria-label="Previous week">&#8249;</button>
+    <div class="week-strip">${cells}</div>
+    <button class="week-arrow" id="week-next" aria-label="Next week">&#8250;</button>
+  </div>`;
+}
+
 function occurrencesFor(date) {
   const items = get(ITEMS_KEY, []);
   const done  = get(DONE_KEY, []);
@@ -144,6 +172,7 @@ function render() {
       <button class="day-arrow" id="day-next" aria-label="Next day">&#9654;</button>
     </div>
 
+    ${weekStripMarkup()}
     <div class="schedule-timeline" id="timeline" style="height:${(END_HR - START_HR + 1) * HOUR_PX}px">
       ${hoursMarkup()}
       ${nowLineMarkup()}
@@ -171,6 +200,7 @@ function render() {
   `;
 
   wireNav();
+  wireWeekStrip();
   wireBlocks(occs);
   wireInputBar();
   on(container.querySelector('#fab-add'), 'click', () => openModal(null));
@@ -257,6 +287,14 @@ function wireNav() {
     inp.showPicker?.();
     setTimeout(() => inp.click(), 0);
   });
+}
+function wireWeekStrip() {
+  container.querySelectorAll('.week-day').forEach(el =>
+    on(el, 'click', () => { viewDate = el.dataset.date; render(); }));
+  const wp = container.querySelector('#week-prev');
+  const wn = container.querySelector('#week-next');
+  if (wp) on(wp, 'click', () => { viewDate = shiftDate(viewDate, -7); render(); });
+  if (wn) on(wn, 'click', () => { viewDate = shiftDate(viewDate,  7); render(); });
 }
 function wireBlocks(occs) {
   container.querySelectorAll('.sched-block').forEach(el => {
