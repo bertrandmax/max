@@ -1284,4 +1284,56 @@ body[data-tab="sleep"] .btn-save { background: var(--slate); }
 }
 .fab:active { transform: scale(0.94); }
 
+/* ── Meals ───────────────────────────────────── */
+.day-nav {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  padding: 0.5rem 1.25rem;
+}
+.day-arrow {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; color: var(--ink2);
+  background: var(--bg3); border: 1px solid var(--border);
+}
+.day-arrow:disabled { opacity: 0.3; }
+.day-label {
+  font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+  color: var(--ink); min-width: 110px; text-align: center;
+}
+
+.meal-totals { padding: 0.5rem 1.25rem; }
+.totals-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem;
+  padding: 0.85rem; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.totals-row > div { text-align: center; }
+.totals-num {
+  font-family: var(--font-display); font-size: 1.15rem;
+  font-weight: 800; color: var(--red);
+}
+.totals-lbl { font-size: 0.66rem; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+.meal-list { padding: 0.25rem 1.25rem 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.meal-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm);
+}
+.meal-row.failed { border-color: var(--red); background: var(--red-low); }
+.meal-row.parsing .meal-meta { color: var(--red); animation: blink 1s ease-in-out infinite; }
+.meal-main { flex: 1; min-width: 0; }
+.meal-name { font-weight: 600; color: var(--ink); font-size: 0.92rem; }
+.meal-meta { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink3); margin-top: 2px; }
+
+.meal-input-bar {
+  position: sticky; bottom: 0;
+  display: flex; gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+}
+body[data-tab="meals"] .meal-input-bar .add-btn { background: var(--red); box-shadow: 0 2px 12px rgba(224,85,85,0.35); }
+body[data-tab="meals"] .btn-save { background: var(--red); }
+
 body[data-tab="weight"] .btn-save { background: var(--yellow); }
