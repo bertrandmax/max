@@ -176,6 +176,7 @@ function render() {
   on(container.querySelector('#fab-add'), 'click', () => openModal(null));
   const jumpBtn = container.querySelector('#jump-today');
   if (jumpBtn) on(jumpBtn, 'click', () => { viewDate = todayStr(); render(); });
+  scrollToFocus();
 }
 
 function hoursMarkup() {
@@ -193,6 +194,25 @@ function nowLineMarkup() {
   if (minOffset < 0 || minOffset > (END_HR - START_HR + 1) * 60) return '';
   const top = (minOffset / 60) * HOUR_PX;
   return `<div class="now-line" style="top:${top}px"></div>`;
+}
+
+function scrollToFocus() {
+  requestAnimationFrame(() => {
+    const tl = container?.querySelector('#timeline');
+    if (!tl) return;
+    let targetTop = null;
+    if (viewDate === todayStr()) {
+      const nl = tl.querySelector('.now-line');
+      if (nl) targetTop = parseFloat(nl.style.top);
+    }
+    if (targetTop == null) {
+      const first = tl.querySelector('.sched-block');
+      if (first) targetTop = parseFloat(first.style.top);
+    }
+    if (targetTop == null) return;
+    const absY = window.scrollY + tl.getBoundingClientRect().top + targetTop;
+    window.scrollTo({ top: Math.max(0, absY - window.innerHeight / 3), behavior: 'smooth' });
+  });
 }
 
 function blockMarkup(o) {
