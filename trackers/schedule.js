@@ -1,4 +1,4 @@
-import { get, set } from '../storage.js?v=15';
+import { get, set, getTasks, toggleTask } from '../storage.js?v=15';
 import { parseScheduleItem, hasApiKey } from '../gemini.js?v=15';
 import { isSupported, createRecognition } from '../speech.js?v=15';
 
@@ -53,6 +53,43 @@ function fmtDayLabel(s) {
   return d.toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short' });
 }
 
+function weekStartStr(date) {
+  const d = new Date(date + 'T00:00:00');
+  d.setDate(d.getDate() - d.getDay()); // Sunday=0 start
+  return localDateStr(d);
+}
+
+function weekStripMarkup() {
+  const start = weekStartStr(viewDate);
+  const today = todayStr();
+  const cells = [0,1,2,3,4,5,6].map(i => {
+    const ds = shiftDate(start, i);
+    const count = timelineOccurrences(ds).length;
+    const dots = '•'.repeat(Math.min(3, count));
+    const d = new Date(ds + 'T00:00:00');
+    const letter = d.toLocaleDateString('en-US', { weekday: 'narrow' });
+    return `<button class="week-day ${ds === viewDate ? 'selected' : ''} ${ds === today ? 'today' : ''}" data-date="${ds}">
+      <span class="wd-letter">${letter}</span>
+      <span class="wd-num">${d.getDate()}</span>
+      <span class="wd-dots">${dots}</span>
+    </button>`;
+  }).join('');
+  return `<div class="week-nav">
+    <button class="week-arrow" id="week-prev" aria-label="Previous week">&#8249;</button>
+    <div class="week-strip">${cells}</div>
+    <button class="week-arrow" id="week-next" aria-label="Next week">&#8250;</button>
+  </div>`;
+}
+
+function untimedMarkup(date) {
+  const ut = untimedTasks(date);
+  if (!ut.length) return '';
+  return `<div class="untimed-row">${ut.map(t =>
+    `<button class="untimed-chip ${t.completed ? 'done' : ''}" data-task="${t.id}">
+      <span class="untimed-check">${t.completed ? '☑' : '☐'}</span>${escapeHtml(t.title)}${t.dueTime ? ` <span class="untimed-time">${t.dueTime}</span>` : ''}
+    </button>`).join('')}</div>`;
+}
+
 function occurrencesFor(date) {
   const items = get(ITEMS_KEY, []);
   const done  = get(DONE_KEY, []);
@@ -74,9 +111,63 @@ function occurrencesFor(date) {
     .sort((a, b) => toMin(a.startTime) - toMin(b.startTime));
 }
 
+function inGrid(t) { const m = toMin(t); return m >= START_HR * 60 && m <= (END_HR + 1) * 60; }
+
+function tasksForDate(date) { return getTasks().filter(t => t.dueDate === date); }
+
+function timedTaskOccurrences(date) {
+  return tasksForDate(date)
+    .filter(t => t.dueTime && inGrid(t.dueTime))
+    .map(t => ({
+      id: 'task:' + t.id, _task: true, taskId: t.id,
+      title: t.title, startTime: t.dueTime, endTime: null,
+      category: 'task', done: !!t.completed
+    }));
+}
+
+function untimedTasks(date) {
+  return tasksForDate(date).filter(t => !t.dueTime || !inGrid(t.dueTime));
+}
+
+// Events + routines + due-timed tasks, sorted by start time.
+function timelineOccurrences(date) {
+  return [...occurrencesFor(date), ...timedTaskOccurrences(date)]
+    .sort((a, b) => toMin(a.startTime) - toMin(b.startTime));
+}
+
+// Greedy interval partitioning. Mutates each occ with _col (column index)
+// and _cols (column count in its overlap cluster). occs MUST be start-sorted.
+function assignColumns(occs) {
+  const items = occs.map(o => {
+    const start = toMin(o.startTime);
+    const dur = Math.max(30, o.endTime ? toMin(o.endTime) - toMin(o.startTime) : 30);
+    return { o, start, end: start + dur };
+  });
+  let i = 0;
+  while (i < items.length) {
+    let j = i, maxEnd = items[i].end;
+    while (j + 1 < items.length && items[j + 1].start < maxEnd) {
+      j++; maxEnd = Math.max(maxEnd, items[j].end);
+    }
+    const cluster = items.slice(i, j + 1);
+    const colEnds = [];
+    cluster.forEach(it => {
+      let placed = false;
+      for (let c = 0; c < colEnds.length; c++) {
+        if (colEnds[c] <= it.start) { colEnds[c] = it.end; it.o._col = c; placed = true; break; }
+      }
+      if (!placed) { it.o._col = colEnds.length; colEnds.push(it.end); }
+    });
+    cluster.forEach(it => { it.o._cols = colEnds.length; });
+    i = j + 1;
+  }
+  return occs;
+}
+
 function render() {
   const dayLabel = viewDate === todayStr() ? `Today · ${fmtDayLabel(viewDate)}` : fmtDayLabel(viewDate);
-  const occs = occurrencesFor(viewDate);
+  const occs = timelineOccurrences(viewDate);
+  assignColumns(occs);
 
   container.innerHTML = `
     <div class="tracker-header">
@@ -90,6 +181,8 @@ function render() {
       <button class="day-arrow" id="day-next" aria-label="Next day">&#9654;</button>
     </div>
 
+    ${weekStripMarkup()}
+    ${untimedMarkup(viewDate)}
     <div class="schedule-timeline" id="timeline" style="height:${(END_HR - START_HR + 1) * HOUR_PX}px">
       ${hoursMarkup()}
       ${nowLineMarkup()}
@@ -117,11 +210,13 @@ function render() {
   `;
 
   wireNav();
+  wireWeekStrip();
   wireBlocks(occs);
   wireInputBar();
   on(container.querySelector('#fab-add'), 'click', () => openModal(null));
   const jumpBtn = container.querySelector('#jump-today');
   if (jumpBtn) on(jumpBtn, 'click', () => { viewDate = todayStr(); render(); });
+  scrollToFocus();
 }
 
 function hoursMarkup() {
@@ -141,18 +236,46 @@ function nowLineMarkup() {
   return `<div class="now-line" style="top:${top}px"></div>`;
 }
 
+function scrollToFocus() {
+  requestAnimationFrame(() => {
+    const tl = container?.querySelector('#timeline');
+    if (!tl) return;
+    let targetTop = null;
+    if (viewDate === todayStr()) {
+      const nl = tl.querySelector('.now-line');
+      if (nl) targetTop = parseFloat(nl.style.top);
+    }
+    if (targetTop == null) {
+      const first = tl.querySelector('.sched-block');
+      if (first) targetTop = parseFloat(first.style.top);
+    }
+    if (targetTop == null) return;
+    const absY = window.scrollY + tl.getBoundingClientRect().top + targetTop;
+    window.scrollTo({ top: Math.max(0, absY - window.innerHeight / 3), behavior: 'smooth' });
+  });
+}
+
 function blockMarkup(o) {
   const startMin = toMin(o.startTime) - START_HR * 60;
   const durMin = Math.max(30, o.endTime ? (toMin(o.endTime) - toMin(o.startTime)) : 30);
   const top = (startMin / 60) * HOUR_PX;
   const height = (durMin / 60) * HOUR_PX;
-  const cat = o.category || 'other';
+  const cols = o._cols || 1;
+  const col = o._col || 0;
+  const gap = 2; // px gutter between columns
+  const widthPct = 100 / cols;
+  const leftPct = col * widthPct;
+  const cat = o._task ? 'task' : (o.category || 'other');
+  const moreBtn = o._task
+    ? ''
+    : `<button class="sched-block-more" aria-label="More actions" data-id="${o.id}">⋯</button>`;
   return `
-    <div class="sched-block cat-${cat} ${o.done ? 'done' : ''} ${o._parsing ? 'parsing' : ''}"
-         data-id="${o.id}" style="top:${top}px;height:${height}px">
-      <div class="sched-block-title">${escapeHtml(o.title)}</div>
+    <div class="sched-block cat-${cat} ${o.done ? 'done' : ''} ${o._parsing ? 'parsing' : ''} ${o._task ? 'is-task' : ''}"
+         data-id="${o.id}" ${o._task ? `data-task="${o.taskId}"` : ''}
+         style="top:${top}px;height:${height}px;left:calc(${leftPct}% + ${gap}px);width:calc(${widthPct}% - ${gap * 2}px)">
+      <div class="sched-block-title">${o._task ? (o.done ? '☑ ' : '☐ ') : ''}${escapeHtml(o.title)}</div>
       <div class="sched-block-time">${o.startTime}${o.endTime ? '–' + o.endTime : ''}${o._parsing ? ' · parsing…' : ''}</div>
-      <button class="sched-block-more" aria-label="More actions" data-id="${o.id}">⋯</button>
+      ${moreBtn}
     </div>
   `;
 }
@@ -175,24 +298,33 @@ function wireNav() {
     setTimeout(() => inp.click(), 0);
   });
 }
+function wireWeekStrip() {
+  container.querySelectorAll('.week-day').forEach(el =>
+    on(el, 'click', () => { viewDate = el.dataset.date; render(); }));
+  const wp = container.querySelector('#week-prev');
+  const wn = container.querySelector('#week-next');
+  if (wp) on(wp, 'click', () => { viewDate = shiftDate(viewDate, -7); render(); });
+  if (wn) on(wn, 'click', () => { viewDate = shiftDate(viewDate,  7); render(); });
+}
 function wireBlocks(occs) {
   container.querySelectorAll('.sched-block').forEach(el => {
+    if (el.classList.contains('is-task')) {
+      on(el, 'click', () => { toggleTask(el.dataset.task); render(); });
+      return;
+    }
     const id = el.dataset.id;
     const item = occs.find(o => o.id === id);
     if (!item) return;
-
     on(el, 'click', e => {
       if (e.target.classList.contains('sched-block-more')) return;
       toggleDone(item.id, viewDate);
       render();
     });
-
     const more = el.querySelector('.sched-block-more');
-    if (more) on(more, 'click', e => {
-      e.stopPropagation();
-      openModal(item);
-    });
+    if (more) on(more, 'click', e => { e.stopPropagation(); openModal(item); });
   });
+  container.querySelectorAll('.untimed-chip').forEach(el =>
+    on(el, 'click', () => { toggleTask(el.dataset.task); render(); }));
 }
 
 function toggleDone(itemId, date) {
