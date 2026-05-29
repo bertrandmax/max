@@ -86,7 +86,7 @@ function untimedMarkup(date) {
   if (!ut.length) return '';
   return `<div class="untimed-row">${ut.map(t =>
     `<button class="untimed-chip ${t.completed ? 'done' : ''}" data-task="${t.id}">
-      <span class="untimed-check">☑</span>${escapeHtml(t.title)}${t.dueTime ? ` <span class="untimed-time">${t.dueTime}</span>` : ''}
+      <span class="untimed-check">${t.completed ? '☑' : '☐'}</span>${escapeHtml(t.title)}${t.dueTime ? ` <span class="untimed-time">${t.dueTime}</span>` : ''}
     </button>`).join('')}</div>`;
 }
 
@@ -273,7 +273,7 @@ function blockMarkup(o) {
     <div class="sched-block cat-${cat} ${o.done ? 'done' : ''} ${o._parsing ? 'parsing' : ''} ${o._task ? 'is-task' : ''}"
          data-id="${o.id}" ${o._task ? `data-task="${o.taskId}"` : ''}
          style="top:${top}px;height:${height}px;left:calc(${leftPct}% + ${gap}px);width:calc(${widthPct}% - ${gap * 2}px)">
-      <div class="sched-block-title">${o._task ? '☑ ' : ''}${escapeHtml(o.title)}</div>
+      <div class="sched-block-title">${o._task ? (o.done ? '☑ ' : '☐ ') : ''}${escapeHtml(o.title)}</div>
       <div class="sched-block-time">${o.startTime}${o.endTime ? '–' + o.endTime : ''}${o._parsing ? ' · parsing…' : ''}</div>
       ${moreBtn}
     </div>
