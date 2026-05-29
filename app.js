@@ -1,10 +1,10 @@
-import * as tasks  from './trackers/tasks.js';
-import * as habits from './trackers/habits.js';
-import * as sleep  from './trackers/sleep.js';
-import * as weight from './trackers/weight.js';
-import * as meals  from './trackers/meals.js';
-import { get, set } from './storage.js';
-import { chatWithAI, generateBriefing, getApiKey, setApiKey, hasApiKey } from './gemini.js';
+import * as tasks  from './trackers/tasks.js?v=10';
+import * as habits from './trackers/habits.js?v=10';
+import * as sleep  from './trackers/sleep.js?v=10';
+import * as weight from './trackers/weight.js?v=10';
+import * as meals  from './trackers/meals.js?v=10';
+import { get, set } from './storage.js?v=10';
+import { chatWithAI, generateBriefing, getApiKey, setApiKey, hasApiKey } from './gemini.js?v=10';
 
 // ── State ─────────────────────────────────────
 let chatOpen = false;

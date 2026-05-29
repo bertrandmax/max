@@ -1,5 +1,5 @@
-import { get, set } from '../storage.js';
-import { parseMeal, hasApiKey } from '../gemini.js';
+import { get, set } from '../storage.js?v=10';
+import { parseMeal, hasApiKey } from '../gemini.js?v=10';
 
 const KEY = 'vox_meals';
 let removers = [];

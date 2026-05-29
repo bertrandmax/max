@@ -1,4 +1,4 @@
-import { get, set } from '../storage.js';
+import { get, set } from '../storage.js?v=10';
 
 const KEY = 'vox_weight';
 const GOAL_KEY = 'vox_weight_goal';

@@ -1,4 +1,4 @@
-import { get, set } from '../storage.js';
+import { get, set } from '../storage.js?v=10';
 
 const HABITS_KEY = 'vox_habits';
 const LOG_KEY    = 'vox_habit_log';
