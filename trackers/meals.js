@@ -1,5 +1,5 @@
-import { get, set } from '../storage.js?v=11';
-import { parseMeal, hasApiKey } from '../gemini.js?v=11';
+import { get, set } from '../storage.js?v=13';
+import { parseMeal, hasApiKey } from '../gemini.js?v=13';
 
 const KEY = 'vox_meals';
 let removers = [];
@@ -21,6 +21,7 @@ export function getContext() {
   const cutoff = daysAgo(7);
   return all.filter(m => m.date >= cutoff);
 }
+export function refresh() { if (container) render(); }
 
 function on(el, evt, fn) { el.addEventListener(evt, fn); removers.push(() => el.removeEventListener(evt, fn)); }
 function localDateStr(d) {

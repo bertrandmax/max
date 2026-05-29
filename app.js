@@ -1,10 +1,11 @@
-import * as tasks  from './trackers/tasks.js?v=11';
-import * as habits from './trackers/habits.js?v=11';
-import * as sleep  from './trackers/sleep.js?v=11';
-import * as weight from './trackers/weight.js?v=11';
-import * as meals  from './trackers/meals.js?v=11';
-import { get, set } from './storage.js?v=11';
-import { chatWithAI, generateBriefing, getApiKey, setApiKey, hasApiKey } from './gemini.js?v=11';
+import * as tasks  from './trackers/tasks.js?v=13';
+import * as habits from './trackers/habits.js?v=13';
+import * as sleep  from './trackers/sleep.js?v=13';
+import * as weight from './trackers/weight.js?v=13';
+import * as meals  from './trackers/meals.js?v=13';
+import { get, set } from './storage.js?v=13';
+import { chatWithAI, generateBriefing, getApiKey, setApiKey, hasApiKey } from './gemini.js?v=13';
+import { initCloud } from './cloud.js?v=13';
 
 // ── State ─────────────────────────────────────
 let chatOpen = false;
@@ -50,7 +51,7 @@ function switchTab(name) {
 }
 
 // ── Init ──────────────────────────────────────
-function init() {
+async function init() {
   document.querySelectorAll('.tab-bar-btn').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
@@ -58,6 +59,16 @@ function init() {
   switchTab(TRACKERS[initial] ? initial : 'tasks');
   wireSettings();
   wireChat();
+
+  // Realtime: re-render active tracker when cloud changes arrive
+  window.addEventListener('vox:cloud-change', () => active?.refresh?.());
+  window.addEventListener('vox:cloud-ready',  () => active?.refresh?.());
+
+  try {
+    await initCloud();
+  } catch (err) {
+    console.error('cloud init failed', err);
+  }
 }
 
 // ── Settings ──────────────────────────────────

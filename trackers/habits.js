@@ -1,4 +1,4 @@
-import { get, set } from '../storage.js?v=11';
+import { get, set } from '../storage.js?v=13';
 
 const HABITS_KEY = 'vox_habits';
 const LOG_KEY    = 'vox_habit_log';
@@ -23,6 +23,8 @@ export function unmount() {
 export function getContext() {
   return { habits: get(HABITS_KEY, []), log: get(LOG_KEY, {}) };
 }
+
+export function refresh() { if (container) render(); }
 
 function on(el, evt, fn) {
   el.addEventListener(evt, fn);

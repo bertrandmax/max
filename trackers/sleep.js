@@ -1,4 +1,4 @@
-import { get, set } from '../storage.js?v=11';
+import { get, set } from '../storage.js?v=13';
 
 const KEY = 'vox_sleep';
 let removers = [];
@@ -9,6 +9,7 @@ export function unmount() { removers.forEach(fn => fn()); removers = []; contain
 export function getContext() {
   return get(KEY, []).slice(0, 14);
 }
+export function refresh() { if (container) render(); }
 
 function on(el, evt, fn) { el.addEventListener(evt, fn); removers.push(() => el.removeEventListener(evt, fn)); }
 function localDateStr(d) {

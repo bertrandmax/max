@@ -1,6 +1,6 @@
-import { getTasks, addTask, deleteTask, toggleTask, updateTask } from '../storage.js?v=11';
-import { parseTask, hasApiKey } from '../gemini.js?v=11';
-import { isSupported, createRecognition } from '../speech.js?v=11';
+import { getTasks, addTask, deleteTask, toggleTask, updateTask } from '../storage.js?v=13';
+import { parseTask, hasApiKey } from '../gemini.js?v=13';
+import { isSupported, createRecognition } from '../speech.js?v=13';
 
 // ── Template ──────────────────────────────────
 const TEMPLATE = `
@@ -105,6 +105,8 @@ export function unmount() {
 export function getContext() {
   return getTasks();
 }
+
+export function refresh() { if (mountedContainer) renderTasks(); }
 
 // ── Voice ─────────────────────────────────────
 function setupVoice() {

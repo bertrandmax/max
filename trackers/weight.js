@@ -1,4 +1,4 @@
-import { get, set } from '../storage.js?v=11';
+import { get, set } from '../storage.js?v=13';
 
 const KEY = 'vox_weight';
 const GOAL_KEY = 'vox_weight_goal';
@@ -16,6 +16,7 @@ export function unmount() {
 export function getContext() {
   return { entries: get(KEY, []).slice(0, 30), goal: get(GOAL_KEY, null) };
 }
+export function refresh() { if (container) render(); }
 
 function on(el, evt, fn) { el.addEventListener(evt, fn); removers.push(() => el.removeEventListener(evt, fn)); }
 function localDateStr(d) {

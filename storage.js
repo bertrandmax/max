@@ -1,3 +1,5 @@
+import { pushLocal } from './cloud.js?v=13';
+
 const STORAGE_KEY = 'vox_tasks';
 
 export function getTasks() {
@@ -8,31 +10,36 @@ export function getTasks() {
   }
 }
 
-export function saveTasks(tasks) {
+function saveTasksRaw(tasks) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  pushLocal(STORAGE_KEY);
+}
+
+export function saveTasks(tasks) {
+  saveTasksRaw(tasks);
 }
 
 export function addTask(task) {
   const tasks = getTasks();
   tasks.unshift(task);
-  saveTasks(tasks);
+  saveTasksRaw(tasks);
   return task;
 }
 
 export function deleteTask(id) {
-  saveTasks(getTasks().filter(t => t.id !== id));
+  saveTasksRaw(getTasks().filter(t => t.id !== id));
 }
 
 export function toggleTask(id) {
   const tasks = getTasks().map(t =>
     t.id === id ? { ...t, completed: !t.completed } : t
   );
-  saveTasks(tasks);
+  saveTasksRaw(tasks);
   return tasks.find(t => t.id === id);
 }
 
 export function updateTask(id, updates) {
-  saveTasks(getTasks().map(t =>
+  saveTasksRaw(getTasks().map(t =>
     t.id === id ? { ...t, ...updates } : t
   ));
 }
@@ -50,6 +57,7 @@ export function get(key, fallback = null) {
 export function set(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    pushLocal(key);
   } catch (err) {
     console.error('storage.set failed', key, err);
   }
