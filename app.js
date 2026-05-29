@@ -22,9 +22,10 @@ const settingsPanel      = $('settings-panel');
 const apiKeyInput        = $('api-key-input');
 const saveKeyBtn         = $('save-key-btn');
 const keyStatus          = $('key-status');
-const chatToggle         = $('chat-toggle');
-const chatChevron        = $('chat-chevron');
-const chatBody           = $('chat-body');
+const chatFab            = $('chat-fab');
+const chatSheet          = $('chat-sheet');
+const chatBackdrop       = $('chat-backdrop');
+const chatClose          = $('chat-close');
 const chatMessages       = $('chat-messages');
 const chatInput          = $('chat-input');
 const chatSend           = $('chat-send');
@@ -168,18 +169,27 @@ async function handleBriefing() {
 
 // ── Chat ──────────────────────────────────────
 function wireChat() {
-  chatToggle.addEventListener('click', toggleChat);
+  chatFab.addEventListener('click', openChat);
+  chatBackdrop.addEventListener('click', closeChat);
+  chatClose.addEventListener('click', closeChat);
   chatSend.addEventListener('click', handleChat);
   chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleChat(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && chatOpen) closeChat(); });
 }
 
-function toggleChat() {
-  chatOpen = !chatOpen;
-  chatBody.classList.toggle('open', chatOpen);
-  chatChevron.classList.toggle('open', chatOpen);
-  chatToggle.setAttribute('aria-expanded', chatOpen);
-  chatBody.setAttribute('aria-hidden', !chatOpen);
-  if (chatOpen) chatInput.focus();
+function openChat() {
+  chatOpen = true;
+  chatSheet.classList.add('open');
+  chatSheet.setAttribute('aria-hidden', 'false');
+  chatFab.classList.add('open');
+  chatInput.focus();
+}
+
+function closeChat() {
+  chatOpen = false;
+  chatSheet.classList.remove('open');
+  chatSheet.setAttribute('aria-hidden', 'true');
+  chatFab.classList.remove('open');
 }
 
 async function handleChat() {
