@@ -54,37 +54,50 @@ Today's date is ${today}. Use it to resolve relative dates like "tomorrow" or "n
   }
 }
 
-export async function chatWithAI(question, tasks) {
+export async function chatWithAI(question, fullContext) {
   const today = new Date().toISOString().split('T')[0];
   const prompt =
-`You are a helpful personal task assistant.
-The user's tasks are listed below in JSON.
+`You are a personal life assistant. The user has multiple trackers — answer using whichever are relevant.
 
-Tasks:
-${JSON.stringify(tasks, null, 2)}
+Today: ${today}
 
-Today is ${today}.
-Answer the user's question clearly and concisely. Reference tasks by title when relevant.
+TASKS:
+${JSON.stringify(fullContext.tasks ?? [], null, 2)}
+
+HABITS (definitions + completion log by date):
+${JSON.stringify(fullContext.habits ?? {}, null, 2)}
+
+SLEEP (last 14 entries):
+${JSON.stringify(fullContext.sleep ?? [], null, 2)}
+
+WEIGHT (last 30 entries + goal):
+${JSON.stringify(fullContext.weight ?? {}, null, 2)}
+
+MEALS (last 7 days):
+${JSON.stringify(fullContext.meals ?? [], null, 2)}
+
+Answer the user concisely. Reference specific data points (titles, dates, numbers) when useful. If a tracker has no data relevant to the question, ignore it silently.
 
 User: "${question}"`;
-
   return await callGemini(prompt);
 }
 
-export async function generateBriefing(tasks) {
+export async function generateBriefing(fullContext) {
   const today = new Date().toISOString().split('T')[0];
   const prompt =
-`You are a personal productivity assistant.
-Generate a short morning briefing (3–5 sentences) based on the user's task list.
+`You are a personal productivity assistant. Generate a warm, motivating morning briefing (4–6 sentences, plain text only — no markdown, no bullets).
 
-Tasks:
-${JSON.stringify(tasks, null, 2)}
+Today: ${today}
 
-Today is ${today}.
+TASKS: ${JSON.stringify(fullContext.tasks ?? [])}
+HABITS: ${JSON.stringify(fullContext.habits ?? {})}
+SLEEP (last 7): ${JSON.stringify((fullContext.sleep ?? []).slice(0, 7))}
+WEIGHT (last 7): ${JSON.stringify({ entries: (fullContext.weight?.entries ?? []).slice(0, 7), goal: fullContext.weight?.goal })}
+MEALS (today): ${JSON.stringify((fullContext.meals ?? []).filter(m => m.date === today))}
 
-Cover: (1) tasks due today, (2) any overdue tasks, (3) a suggested top priority.
-Tone: warm and motivating. Return plain text only — no markdown, no bullet points.`;
+Cover what's relevant from: tasks due today, overdue tasks, a top priority, any habit streak at risk (yesterday missed), unusual sleep (under 6h two nights running), weight trend, today's calorie progress.
 
+If a section has no data, skip it silently. Keep it brief.`;
   return await callGemini(prompt);
 }
 

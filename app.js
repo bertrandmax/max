@@ -3,7 +3,7 @@ import * as habits from './trackers/habits.js';
 import * as sleep  from './trackers/sleep.js';
 import * as weight from './trackers/weight.js';
 import * as meals  from './trackers/meals.js';
-import { getTasks, get, set } from './storage.js';
+import { get, set } from './storage.js';
 import { chatWithAI, generateBriefing, getApiKey, setApiKey, hasApiKey } from './gemini.js';
 
 // ── State ─────────────────────────────────────
@@ -125,6 +125,17 @@ function saveKey() {
   }, 1200);
 }
 
+// ── Full Context ──────────────────────────────
+function buildFullContext() {
+  return {
+    tasks:  tasks.getContext(),
+    habits: habits.getContext(),
+    sleep:  sleep.getContext(),
+    weight: weight.getContext(),
+    meals:  meals.getContext()
+  };
+}
+
 // ── Briefing ──────────────────────────────────
 async function handleBriefing() {
   briefingCard.classList.remove('hidden');
@@ -137,7 +148,7 @@ async function handleBriefing() {
   briefingContent.innerHTML = '<div class="briefing-loading">Generating your briefing<span class="dots"></span></div>';
 
   try {
-    const text = await generateBriefing(getTasks());
+    const text = await generateBriefing(buildFullContext());
     briefingContent.innerHTML = `<p>${escapeHtml(text)}</p>`;
   } catch (err) {
     briefingContent.innerHTML = `<p style="color:var(--red)">Error: ${escapeHtml(err.message)}</p>`;
@@ -164,18 +175,11 @@ async function handleChat() {
   const q = chatInput.value.trim();
   if (!q) return;
   chatInput.value = '';
-
   appendMsg('user', q);
-
-  if (!hasApiKey()) {
-    appendMsg('assistant', 'Add a Gemini API key in settings to use AI chat.');
-    return;
-  }
-
+  if (!hasApiKey()) { appendMsg('assistant', 'Add a Gemini API key in settings to use AI chat.'); return; }
   const thinking = appendMsg('assistant', '…', true);
-
   try {
-    const reply = await chatWithAI(q, getTasks());
+    const reply = await chatWithAI(q, buildFullContext());
     thinking.textContent = reply;
     thinking.classList.remove('thinking');
   } catch (err) {
