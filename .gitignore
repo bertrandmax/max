@@ -8,3 +8,5 @@ initial-state.md
 node_modules/
 .env
 .env.local
+.vercel
+.superpowers/
