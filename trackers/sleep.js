@@ -1,4 +1,4 @@
-import { get, set } from '../storage.js?v=10';
+import { get, set } from '../storage.js?v=11';
 
 const KEY = 'vox_sleep';
 let removers = [];
@@ -11,8 +11,14 @@ export function getContext() {
 }
 
 function on(el, evt, fn) { el.addEventListener(evt, fn); removers.push(() => el.removeEventListener(evt, fn)); }
-function today() { return new Date().toISOString().split('T')[0]; }
-function daysAgo(n) { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().split('T')[0]; }
+function localDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function today() { return localDateStr(new Date()); }
+function daysAgo(n) { const d = new Date(); d.setDate(d.getDate() - n); return localDateStr(d); }
 
 function computeHours(bedtime, wake) {
   const [bh, bm] = bedtime.split(':').map(Number);

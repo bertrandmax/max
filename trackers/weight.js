@@ -1,4 +1,4 @@
-import { get, set } from '../storage.js?v=10';
+import { get, set } from '../storage.js?v=11';
 
 const KEY = 'vox_weight';
 const GOAL_KEY = 'vox_weight_goal';
@@ -18,7 +18,13 @@ export function getContext() {
 }
 
 function on(el, evt, fn) { el.addEventListener(evt, fn); removers.push(() => el.removeEventListener(evt, fn)); }
-function today() { return new Date().toISOString().split('T')[0]; }
+function localDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function today() { return localDateStr(new Date()); }
 
 function addEntry(weight, date) {
   const all = get(KEY, []).filter(e => e.date !== date);
@@ -117,8 +123,8 @@ function openLogModal() {
   modal.innerHTML = `
     <div class="modal-card">
       <h3 class="modal-title">Log weight</h3>
-      <input type="number" step="0.1" id="w-val" class="modal-input" placeholder="Weight in ${unit}" autocomplete="off">
-      <input type="date" id="w-date" class="modal-input" value="${today()}" max="${today()}">
+      <input type="number" step="0.1" id="w-val" class="modal-input" placeholder="Weight in ${unit}" autocomplete="off" aria-label="Weight in ${unit}">
+      <input type="date" id="w-date" class="modal-input" value="${today()}" max="${today()}" aria-label="Date">
       <div class="modal-actions">
         <button class="btn-secondary" id="cancel-w">Cancel</button>
         <button class="btn-save" id="save-w">Save</button>

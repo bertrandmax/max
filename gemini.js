@@ -30,8 +30,13 @@ async function callGemini(prompt) {
   return text;
 }
 
+function localToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export async function parseTask(rawInput) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = localToday();
   const prompt =
 `You are a task parser. Extract structured task data from the user's input.
 
@@ -60,7 +65,7 @@ Today's date is ${today}. Use it to resolve relative dates like "tomorrow" or "n
 }
 
 export async function chatWithAI(question, fullContext) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = localToday();
   const prompt =
 `You are a personal life assistant. The user has multiple trackers — answer using whichever are relevant.
 
@@ -88,7 +93,7 @@ User: "${question}"`;
 }
 
 export async function generateBriefing(fullContext) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = localToday();
   const prompt =
 `You are a personal productivity assistant. Generate a warm, motivating morning briefing (4–6 sentences, plain text only — no markdown, no bullets).
 

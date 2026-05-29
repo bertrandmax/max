@@ -1,6 +1,6 @@
-import { getTasks, addTask, deleteTask, toggleTask, updateTask } from '../storage.js?v=10';
-import { parseTask, hasApiKey } from '../gemini.js?v=10';
-import { isSupported, createRecognition } from '../speech.js?v=10';
+import { getTasks, addTask, deleteTask, toggleTask, updateTask } from '../storage.js?v=11';
+import { parseTask, hasApiKey } from '../gemini.js?v=11';
+import { isSupported, createRecognition } from '../speech.js?v=11';
 
 // ── Template ──────────────────────────────────
 const TEMPLATE = `
@@ -310,8 +310,14 @@ function getDueCls(date, completed) {
   return '';
 }
 
-function todayStr()    { return new Date().toISOString().split('T')[0]; }
-function tomorrowStr() { return new Date(Date.now() + 86400000).toISOString().split('T')[0]; }
+function localDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function todayStr()    { return localDateStr(new Date()); }
+function tomorrowStr() { return localDateStr(new Date(Date.now() + 86400000)); }
 
 function fmt12(t) {
   const [h, m] = t.split(':').map(Number);

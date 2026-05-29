@@ -1,4 +1,4 @@
-import { get, set } from '../storage.js?v=10';
+import { get, set } from '../storage.js?v=11';
 
 const HABITS_KEY = 'vox_habits';
 const LOG_KEY    = 'vox_habit_log';
@@ -29,11 +29,14 @@ function on(el, evt, fn) {
   removers.push(() => el.removeEventListener(evt, fn));
 }
 
-function today() { return new Date().toISOString().split('T')[0]; }
-function daysAgo(n) {
-  const d = new Date(); d.setDate(d.getDate() - n);
-  return d.toISOString().split('T')[0];
+function localDateStr(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
+function today() { return localDateStr(new Date()); }
+function daysAgo(n) { const d = new Date(); d.setDate(d.getDate() - n); return localDateStr(d); }
 
 function isDone(habitId, dateStr) {
   const log = get(LOG_KEY, {});
@@ -141,10 +144,11 @@ function openNewHabitModal() {
     </div>
   `;
   document.body.appendChild(modal);
-  let pickedEmoji = null;
+  let pickedEmoji = EMOJIS[0];
   const nameInput = modal.querySelector('#habit-name');
   const saveBtn = modal.querySelector('#save-habit');
   const refresh = () => { saveBtn.disabled = !(nameInput.value.trim() && pickedEmoji); };
+  modal.querySelector('.emoji-pick')?.classList.add('selected');
 
   modal.querySelectorAll('.emoji-pick').forEach(btn => {
     btn.addEventListener('click', () => {
