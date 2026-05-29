@@ -109,37 +109,6 @@
 
 </div><!-- /app -->
 
-<!-- AI Chat Panel -->
-<div id="chat-panel" class="chat-panel" aria-label="AI Assistant">
-  <button id="chat-toggle" class="chat-toggle" aria-expanded="false">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-    </svg>
-    <span>Ask Max</span>
-    <svg class="chat-chevron" id="chat-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <path d="M18 15l-6-6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </button>
-  <div id="chat-body" class="chat-body" aria-hidden="true">
-    <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-atomic="false"></div>
-    <div class="chat-input-row">
-      <input
-        id="chat-input"
-        type="text"
-        class="chat-input-field"
-        placeholder="What's due this week?"
-        autocomplete="off"
-        aria-label="Ask Max"
-      >
-      <button id="chat-send" class="chat-send-btn" aria-label="Send message">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-    </div>
-  </div>
-</div>
-
 <nav class="tab-bar" role="tablist" aria-label="Sections">
   <button class="tab-bar-btn" data-tab="tasks" role="tab" aria-selected="true">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -176,6 +145,46 @@
     <span>Schedule</span>
   </button>
 </nav>
+
+<!-- Chat FAB -->
+<button id="chat-fab" class="chat-fab" aria-label="Ask Max">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  </svg>
+</button>
+
+<!-- Chat Bottom Sheet -->
+<div id="chat-sheet" class="chat-sheet" aria-hidden="true">
+  <div id="chat-backdrop" class="chat-sheet-backdrop"></div>
+  <div class="chat-sheet-panel">
+    <div class="chat-sheet-handle"></div>
+    <div class="chat-sheet-header">
+      <div class="chat-sheet-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+        Ask Max
+      </div>
+      <button id="chat-close" class="chat-sheet-close" aria-label="Close chat">×</button>
+    </div>
+    <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-atomic="false"></div>
+    <div class="chat-input-row">
+      <input
+        id="chat-input"
+        type="text"
+        class="chat-input-field"
+        placeholder="What's due this week?"
+        autocomplete="off"
+        aria-label="Ask Max"
+      >
+      <button id="chat-send" class="chat-send-btn" aria-label="Send message">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
 
 <script type="module" src="app.js?v=15"></script>
 </body>
