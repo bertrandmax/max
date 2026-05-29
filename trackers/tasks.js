@@ -1,6 +1,6 @@
-import { getTasks, addTask, deleteTask, toggleTask, updateTask } from '../storage.js?v=13';
-import { parseTask, hasApiKey } from '../gemini.js?v=13';
-import { isSupported, createRecognition } from '../speech.js?v=13';
+import { getTasks, addTask, deleteTask, toggleTask, updateTask } from '../storage.js?v=14';
+import { parseTask, hasApiKey } from '../gemini.js?v=14';
+import { isSupported, createRecognition } from '../speech.js?v=14';
 
 // ── Template ──────────────────────────────────
 const TEMPLATE = `

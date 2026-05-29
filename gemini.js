@@ -83,9 +83,6 @@ ${JSON.stringify(fullContext.sleep ?? [], null, 2)}
 WEIGHT (last 30 entries + goal):
 ${JSON.stringify(fullContext.weight ?? {}, null, 2)}
 
-MEALS (last 7 days):
-${JSON.stringify(fullContext.meals ?? [], null, 2)}
-
 Answer the user concisely. Reference specific data points (titles, dates, numbers) when useful. If a tracker has no data relevant to the question, ignore it silently.
 
 User: "${question}"`;
@@ -103,45 +100,10 @@ TASKS: ${JSON.stringify(fullContext.tasks ?? [])}
 HABITS: ${JSON.stringify(fullContext.habits ?? {})}
 SLEEP (last 7): ${JSON.stringify((fullContext.sleep ?? []).slice(0, 7))}
 WEIGHT (last 7): ${JSON.stringify({ entries: (fullContext.weight?.entries ?? []).slice(0, 7), goal: fullContext.weight?.goal })}
-MEALS (today): ${JSON.stringify((fullContext.meals ?? []).filter(m => m.date === today))}
 
-Cover what's relevant from: tasks due today, overdue tasks, a top priority, any habit streak at risk (yesterday missed), unusual sleep (under 6h two nights running), weight trend, today's calorie progress.
+Cover what's relevant from: tasks due today, overdue tasks, a top priority, any habit streak at risk (yesterday missed), unusual sleep (under 6h two nights running), weight trend.
 
 If a section has no data, skip it silently. Keep it brief.`;
   return await callGemini(prompt);
 }
 
-export async function parseMeal(rawInput) {
-  const prompt =
-`You are a nutrition parser. Extract structured nutrition data from the user's meal log.
-
-User input: "${rawInput}"
-
-Return ONLY a valid JSON object (no markdown, no explanation) with realistic estimates:
-{
-  "name": "clean meal name",
-  "grams": number (estimated portion weight in grams if user didn't specify),
-  "calories": number (kcal),
-  "protein": number (grams),
-  "carbs": number (grams),
-  "fat": number (grams)
-}
-
-Be reasonable with estimates. If user says "a banana" assume ~120g. Numbers must be integers.`;
-
-  try {
-    const text = await callGemini(prompt);
-    const cleaned = text.replace(/```json\n?|\n?```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    return {
-      name:     String(parsed.name || rawInput),
-      grams:    Number(parsed.grams) || 0,
-      calories: Math.round(Number(parsed.calories) || 0),
-      protein:  Math.round(Number(parsed.protein) || 0),
-      carbs:    Math.round(Number(parsed.carbs) || 0),
-      fat:      Math.round(Number(parsed.fat) || 0)
-    };
-  } catch {
-    return { name: rawInput, grams: 0, calories: 0, protein: 0, carbs: 0, fat: 0, _failed: true };
-  }
-}

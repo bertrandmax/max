@@ -104,21 +104,6 @@ async function pushWeightGoal() {
   if (!g) return;
   await sb.from('weight_goal').upsert({ user_id: userId, value: g.value, unit: g.unit });
 }
-async function pushMeals() {
-  const arr = read('vox_meals', []);
-  if (!arr.length) return;
-  const rows = arr
-    .filter(m => !m._parsing)
-    .map(m => ({
-      id: m.id, user_id: userId, date: m.date, name: m.name,
-      raw_input: m.rawInput || null,
-      grams: m.grams || 0, calories: m.calories || 0,
-      protein: m.protein || 0, carbs: m.carbs || 0, fat: m.fat || 0,
-      created_at: m.createdAt || new Date().toISOString()
-    }));
-  if (rows.length) await sb.from('meals').upsert(rows);
-}
-
 // ── Per-table pull (cloud → local) ───────────────────────
 async function pullTasks() {
   const { data } = await sb.from('tasks').select('*').order('created_at', { ascending: false });
@@ -165,41 +150,28 @@ async function pullWeightGoal() {
   if (data) write('vox_weight_goal', { value: Number(data.value), unit: data.unit });
   else write('vox_weight_goal', null);
 }
-async function pullMeals() {
-  const { data } = await sb.from('meals').select('*').order('created_at', { ascending: false });
-  if (!data) return;
-  write('vox_meals', data.map(r => ({
-    id: r.id, date: r.date, name: r.name, rawInput: r.raw_input,
-    grams: Number(r.grams), calories: Number(r.calories),
-    protein: Number(r.protein), carbs: Number(r.carbs), fat: Number(r.fat),
-    createdAt: r.created_at
-  })));
-}
-
 // ── Orchestrators ────────────────────────────────────────
 async function pushAll() {
   await pushHabits();      // before habit_log (FK)
   await Promise.all([
     pushTasks(), pushHabitLog(), pushSleep(),
-    pushWeight(), pushWeightGoal(), pushMeals()
+    pushWeight(), pushWeightGoal()
   ]);
 }
 async function pullAll() {
   await Promise.all([
     pullTasks(), pullHabits(), pullHabitLog(),
-    pullSleep(), pullWeight(), pullWeightGoal(), pullMeals()
+    pullSleep(), pullWeight(), pullWeightGoal()
   ]);
 }
 
 const PUSHERS = {
   vox_tasks: pushTasks, vox_habits: pushHabits, vox_habit_log: pushHabitLog,
-  vox_sleep: pushSleep, vox_weight: pushWeight, vox_weight_goal: pushWeightGoal,
-  vox_meals: pushMeals
+  vox_sleep: pushSleep, vox_weight: pushWeight, vox_weight_goal: pushWeightGoal
 };
 const PULLERS = {
   tasks: pullTasks, habits: pullHabits, habit_log: pullHabitLog,
-  sleep: pullSleep, weight: pullWeight, weight_goal: pullWeightGoal,
-  meals: pullMeals
+  sleep: pullSleep, weight: pullWeight, weight_goal: pullWeightGoal
 };
 
 // Debounced per-key push so rapid edits coalesce

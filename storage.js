@@ -1,4 +1,4 @@
-import { pushLocal } from './cloud.js?v=13';
+import { pushLocal } from './cloud.js?v=14';
 
 const STORAGE_KEY = 'vox_tasks';
 

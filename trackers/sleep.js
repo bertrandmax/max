@@ -1,4 +1,4 @@
-import { get, set } from '../storage.js?v=13';
+import { get, set } from '../storage.js?v=14';
 
 const KEY = 'vox_sleep';
 let removers = [];
