@@ -170,7 +170,6 @@ body {
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
-  padding-bottom: calc(var(--inputbar-h) + var(--chatbar-h) + 8px);
 }
 
 /* ══════════════════════════════════════════════
@@ -962,9 +961,6 @@ body {
   .input-bar {
     padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
     height: calc(var(--inputbar-h) + env(safe-area-inset-bottom));
-  }
-  #app {
-    padding-bottom: calc(var(--inputbar-h) + var(--chatbar-h) + 8px + env(safe-area-inset-bottom));
   }
 }
 
