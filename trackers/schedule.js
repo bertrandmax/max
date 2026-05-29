@@ -1,4 +1,4 @@
-import { get, set } from '../storage.js?v=15';
+import { get, set, getTasks, toggleTask } from '../storage.js?v=15';
 import { parseScheduleItem, hasApiKey } from '../gemini.js?v=15';
 import { isSupported, createRecognition } from '../speech.js?v=15';
 
@@ -74,9 +74,33 @@ function occurrencesFor(date) {
     .sort((a, b) => toMin(a.startTime) - toMin(b.startTime));
 }
 
+function inGrid(t) { const m = toMin(t); return m >= START_HR * 60 && m <= (END_HR + 1) * 60; }
+
+function tasksForDate(date) { return getTasks().filter(t => t.dueDate === date); }
+
+function timedTaskOccurrences(date) {
+  return tasksForDate(date)
+    .filter(t => t.dueTime && inGrid(t.dueTime))
+    .map(t => ({
+      id: 'task:' + t.id, _task: true, taskId: t.id,
+      title: t.title, startTime: t.dueTime, endTime: null,
+      category: 'task', done: !!t.completed
+    }));
+}
+
+function untimedTasks(date) {
+  return tasksForDate(date).filter(t => !t.dueTime || !inGrid(t.dueTime));
+}
+
+// Events + routines + due-timed tasks, sorted by start time.
+function timelineOccurrences(date) {
+  return [...occurrencesFor(date), ...timedTaskOccurrences(date)]
+    .sort((a, b) => toMin(a.startTime) - toMin(b.startTime));
+}
+
 function render() {
   const dayLabel = viewDate === todayStr() ? `Today · ${fmtDayLabel(viewDate)}` : fmtDayLabel(viewDate);
-  const occs = occurrencesFor(viewDate);
+  const occs = timelineOccurrences(viewDate);
 
   container.innerHTML = `
     <div class="tracker-header">
