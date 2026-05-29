@@ -1459,3 +1459,22 @@ body[data-tab="schedule"] { --accent: #9b7cff; }
 .untimed-chip .untimed-check { color: var(--accent); }
 .untimed-chip .untimed-time { font-family: var(--font-mono); font-size: .7rem; color: var(--ink3); }
 .untimed-chip.done { opacity: .5; text-decoration: line-through; }
+
+/* ── Schedule mobile polish ─────────────────── */
+.day-arrow { min-width: 44px; min-height: 44px; }
+.week-arrow { min-height: 44px; }
+.week-day { min-height: 44px; }
+.sched-block-more { min-width: 44px; min-height: 32px; padding: 6px 10px; }
+.schedule-timeline { scroll-margin-top: 96px; }
+.sched-block { scroll-margin-top: 96px; }
+.now-line { scroll-margin-top: 96px; }
+
+@media (max-width: 480px) {
+  .modal-backdrop[data-from="schedule"] { align-items: flex-end; }
+  .modal-backdrop[data-from="schedule"] .modal-card {
+    width: 100%; max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 88vh; overflow-y: auto;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+}
